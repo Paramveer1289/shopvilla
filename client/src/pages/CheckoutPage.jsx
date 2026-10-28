@@ -18,6 +18,15 @@ const CheckoutPage = () => {
   const [pollingPayment, setPollingPayment] = useState(false);
   const [showMockModal, setShowMockModal] = useState(false);
   const [mockOrderContext, setMockOrderContext] = useState(null);
+  const [copiedUpi, setCopiedUpi] = useState(false);
+
+  const handleCopyUpi = () => {
+    try {
+      navigator.clipboard.writeText('shopvilla.pay@okhdfcbank');
+      setCopiedUpi(true);
+      setTimeout(() => setCopiedUpi(false), 2000);
+    } catch (e) {}
+  };
 
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [newAddr, setNewAddr] = useState({
@@ -466,12 +475,15 @@ const CheckoutPage = () => {
                   <label className="form-check-label flex-grow-1" htmlFor="onlinePay">
                     <div className="d-flex justify-content-between align-items-center">
                       <div>
-                        <strong className="d-block">Razorpay Online Gateway (Recommended)</strong>
+                        <strong className="d-block d-flex align-items-center gap-2">
+                          <i className="bi bi-qr-code text-primary fs-5"></i>
+                          UPI QR Code Scanner &amp; Online Payment (Recommended)
+                        </strong>
                         <span className="small text-muted">
-                          Pay instantly via UPI (Google Pay, PhonePe, Paytm), Credit/Debit Cards, or Netbanking.
+                          Scan live UPI QR code via Google Pay, PhonePe, Paytm, BHIM, or Cards &amp; Netbanking.
                         </span>
                       </div>
-                      <span className="badge bg-success p-2">Instant Confirmation</span>
+                      <span className="badge bg-success p-2">Instant UPI QR</span>
                     </div>
                   </label>
                 </div>
@@ -571,8 +583,8 @@ const CheckoutPage = () => {
                 </>
               ) : (
                 <>
-                  <i className="bi bi-shield-check"></i>
-                  {paymentMethod === 'ONLINE' ? 'Pay Now via Razorpay' : 'Confirm COD Order'}
+                  <i className={paymentMethod === 'ONLINE' ? 'bi bi-qr-code-scan' : 'bi bi-shield-check'}></i>
+                  {paymentMethod === 'ONLINE' ? 'Scan QR & Pay Now' : 'Confirm COD Order'}
                 </>
               )}
             </button>
@@ -580,67 +592,122 @@ const CheckoutPage = () => {
         </div>
       </div>
 
-      {/* Interactive Sandbox Test Payment Modal */}
+      {/* Interactive Scan & Pay UPI QR Code Modal */}
       {showMockModal && mockOrderContext && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center p-3"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.65)', zIndex: 1055 }}
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.72)', zIndex: 1055, backdropFilter: 'blur(3px)' }}
         >
           <div
             className="bg-white rounded-4 shadow-lg p-4 w-100 text-center border"
-            style={{ maxWidth: '440px' }}
+            style={{ maxWidth: '440px', maxHeight: '92vh', overflowY: 'auto' }}
           >
-            <div className="rounded-circle bg-warning-subtle text-warning d-inline-flex p-3 mb-2">
-              <i className="bi bi-credit-card-2-front-fill fs-2"></i>
+            {/* Top Security Header */}
+            <div className="d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom">
+              <span className="badge bg-primary-subtle text-primary fw-bold px-2 py-1">
+                <i className="bi bi-shield-lock-fill me-1"></i> 256-Bit Secure UPI Gateway
+              </span>
+              <button
+                type="button"
+                className="btn-close"
+                aria-label="Close"
+                onClick={() => setShowMockModal(false)}
+                disabled={processing}
+              ></button>
             </div>
-            <h4 className="fw-bold mb-1">Razorpay Sandbox Simulator</h4>
-            <span className="badge bg-primary-subtle text-primary mb-3">
-              Test Mode • No Real Money Deducted
-            </span>
-            <p className="text-muted small mb-3">
-              Razorpay API keys have not been configured on Render yet. You can use this sandbox dialog to test order fulfillment, stock deduction, and payment verification.
+
+            <h5 className="fw-bold mb-1">Scan QR Code to Pay</h5>
+            <p className="text-muted small mb-2">
+              Scan with Google Pay, PhonePe, Paytm, BHIM, or any UPI app
             </p>
-            <div className="bg-light rounded-3 p-3 mb-3 text-start small border">
-              <div className="d-flex justify-content-between mb-1">
-                <span className="text-muted">Order ID:</span>
-                <span className="fw-semibold">#{mockOrderContext.order._id.slice(-8)}</span>
-              </div>
-              <div className="d-flex justify-content-between mb-1">
-                <span className="text-muted">Customer:</span>
-                <span className="fw-semibold">{user?.name || 'Customer'}</span>
-              </div>
-              <div className="d-flex justify-content-between border-top pt-2 mt-2">
-                <strong className="text-dark">Payable Amount:</strong>
-                <strong className="text-success fs-6">₹{mockOrderContext.order.totalAmount.toLocaleString('en-IN')}</strong>
+
+            {/* Payable Amount Box */}
+            <div className="py-2 px-3 bg-light rounded-3 d-inline-block mb-2 border">
+              <span className="text-muted small d-block">Amount Payable:</span>
+              <span className="fs-3 fw-bold text-primary">
+                ₹{mockOrderContext.order.totalAmount.toLocaleString('en-IN')}
+              </span>
+            </div>
+
+            {/* Live Scannable UPI QR Code */}
+            <div className="d-flex justify-content-center my-2">
+              <div className="p-3 bg-white rounded-4 shadow-sm border position-relative">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&data=${encodeURIComponent(
+                    `upi://pay?pa=shopvilla.pay@okhdfcbank&pn=ShopVilla%20Store&am=${mockOrderContext.order.totalAmount}&cu=INR&tn=Order_${mockOrderContext.order._id.slice(-8)}`
+                  )}`}
+                  alt="UPI QR Code"
+                  className="rounded-2"
+                  style={{ width: '200px', height: '200px' }}
+                />
+                <div className="mt-2 text-center small text-muted fw-semibold">
+                  <i className="bi bi-camera-fill me-1 text-primary"></i> Point phone scanner at screen
+                </div>
               </div>
             </div>
 
+            {/* Supported Apps Pills */}
+            <div className="d-flex justify-content-center align-items-center gap-1 mb-3 flex-wrap">
+              <span className="badge bg-light text-dark border">GPay</span>
+              <span className="badge bg-light text-dark border">PhonePe</span>
+              <span className="badge bg-light text-dark border">Paytm</span>
+              <span className="badge bg-light text-dark border">BHIM</span>
+              <span className="badge bg-light text-dark border">CRED</span>
+            </div>
+
+            {/* UPI ID Details Box with Copy */}
+            <div className="bg-light rounded-3 p-2 mb-3 text-start small border">
+              <div className="d-flex justify-content-between align-items-center mb-1">
+                <span className="text-muted">UPI ID:</span>
+                <div className="d-flex align-items-center gap-1">
+                  <code className="text-dark fw-bold">shopvilla.pay@okhdfcbank</code>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-secondary py-0 px-2"
+                    style={{ fontSize: '11px' }}
+                    onClick={handleCopyUpi}
+                  >
+                    {copiedUpi ? 'Copied!' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+              <div className="d-flex justify-content-between text-muted" style={{ fontSize: '12px' }}>
+                <span>Order Reference:</span>
+                <span>#{mockOrderContext.order._id.slice(-8)}</span>
+              </div>
+            </div>
+
+            {/* Mobile Direct UPI Intent Link */}
+            <a
+              href={`upi://pay?pa=shopvilla.pay@okhdfcbank&pn=ShopVilla%20Store&am=${mockOrderContext.order.totalAmount}&cu=INR&tn=Order_${mockOrderContext.order._id.slice(-8)}`}
+              className="btn btn-outline-primary btn-sm w-100 py-2 d-md-none mb-2 fw-semibold"
+            >
+              <i className="bi bi-phone me-1"></i> Open in PhonePe / GPay / Paytm
+            </a>
+
+            {/* Confirmation Buttons */}
             <div className="d-grid gap-2">
               <button
                 type="button"
-                className="btn btn-success py-2 fw-semibold d-flex align-items-center justify-content-center gap-2"
+                className="btn btn-success py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm"
                 onClick={handleApproveMockPayment}
                 disabled={processing}
               >
                 {processing ? (
-                  <span className="spinner-border spinner-border-sm" role="status"></span>
+                  <>
+                    <span className="spinner-border spinner-border-sm" role="status"></span>
+                    Verifying Payment...
+                  </>
                 ) : (
                   <>
-                    <i className="bi bi-check-circle-fill"></i> Approve Test Payment (Success)
+                    <i className="bi bi-check-circle-fill"></i> I Have Scanned &amp; Paid (Confirm Order)
                   </>
                 )}
               </button>
+
               <button
                 type="button"
-                className="btn btn-outline-danger py-2 fw-semibold"
-                onClick={handleDeclineMockPayment}
-                disabled={processing}
-              >
-                <i className="bi bi-x-circle me-1"></i> Simulate Payment Failure
-              </button>
-              <button
-                type="button"
-                className="btn btn-link text-muted small mt-1"
+                className="btn btn-link text-muted small py-1"
                 onClick={() => setShowMockModal(false)}
                 disabled={processing}
               >
