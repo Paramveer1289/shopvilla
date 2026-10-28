@@ -10,7 +10,8 @@
     "install:server": "npm install --prefix server",
     "install:client": "npm install --prefix client",
     "install:all": "npm run install:server && npm run install:client",
-    "build:client": "npm run build --prefix client"
+    "build:client": "npm run build --prefix client",
+    "docs:export": "node generate_docx.js && node generate_html.js"
   },
   "keywords": [
     "mern",
@@ -25,5 +26,8 @@
     "jest"
   ],
   "author": "ShopVilla Team",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "docx": "^9.15.0"
+  }
 }

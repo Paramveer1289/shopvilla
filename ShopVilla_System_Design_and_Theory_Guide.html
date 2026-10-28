@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopVilla — Master System Design & Engineering Theory Guide</title>
+  <style>
+    :root {
+      --primary: #1A365D;
+      --secondary: #2B6CB0;
+      --accent: #3182CE;
+      --text: #2D3748;
+      --text-muted: #718096;
+      --bg-light: #F7FAFC;
+      --border: #E2E8F0;
+      --code-bg: #EDF2F7;
+      --code-color: #9B2C2C;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text);
+      background-color: #FFFFFF;
+      line-height: 1.7;
+      font-size: 15px;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: #FFFFFF;
+      padding: 20px 40px;
+    }
+
+    /* Print Action Bar */
+    .action-bar {
+      position: sticky;
+      top: 10px;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1A365D;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      margin-bottom: 30px;
+    }
+
+    .action-bar span {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .btn-print {
+      background: #3182CE;
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s ease;
+    }
+
+    .btn-print:hover {
+      background: #2B6CB0;
+    }
+
+    /* Typography */
+    h1 {
+      color: var(--primary);
+      font-size: 28px;
+      font-weight: 800;
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 12px;
+      margin-top: 40px;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      color: var(--secondary);
+      font-size: 22px;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      margin-top: 36px;
+      margin-bottom: 16px;
+    }
+
+    h3 {
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 24px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      color: var(--text-muted);
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 18px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      margin-bottom: 14px;
+      text-align: justify;
+    }
+
+    /* Blockquote / Callout */
+    blockquote {
+      border-left: 4px solid var(--accent);
+      background-color: var(--bg-light);
+      padding: 14px 20px;
+      margin: 18px 0;
+      border-radius: 0 6px 6px 0;
+      color: #2D3748;
+      font-style: italic;
+    }
+
+    /* Lists */
+    ul, ol {
+      margin-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin: 10px 0;
+    }
+
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 14px;
+      border: 1px solid #CBD5E0;
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr.even td {
+      background-color: #FFFFFF;
+    }
+
+    tr.odd td {
+      background-color: var(--bg-light);
+    }
+
+    /* ASCII Diagrams */
+    pre.ascii-diagram {
+      background-color: #1A202C;
+      color: #E2E8F0;
+      padding: 18px 20px;
+      border-radius: 6px;
+      font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+
+    code.inline-code {
+      font-family: Consolas, monospace;
+      background-color: var(--code-bg);
+      color: var(--code-color);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    hr.section-divider {
+      border: none;
+      border-top: 2px dashed var(--border);
+      margin: 40px 0;
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        padding: 0;
+        font-size: 11pt;
+        color: #000;
+      }
+      .action-bar {
+        display: none !important;
+      }
+      .container {
+        max-width: 100%;
+        padding: 0;
+      }
+      h1 {
+        page-break-before: always;
+        font-size: 20pt;
+        border-bottom: 2pt solid #000;
+      }
+      h1:first-of-type {
+        page-break-before: avoid;
+      }
+      h2 {
+        font-size: 16pt;
+        page-break-after: avoid;
+      }
+      h3 {
+        font-size: 13pt;
+        page-break-after: avoid;
+      }
+      table, blockquote, pre {
+        page-break-inside: avoid;
+      }
+      th {
+        background-color: #E2E8F0 !important;
+        color: #000 !important;
+      }
+      pre.ascii-diagram {
+        background-color: #F7FAFC;
+        color: #000;
+        border: 1px solid #CBD5E0;
+        font-size: 9pt;
+      }
+      @page {
+        margin: 15mm;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="action-bar">
+      <span>📄 ShopVilla — Master System Design & Engineering Theory Guide (1-Day Blueprint)</span>
+      <button class="btn-print" onclick="window.print()">
+        🖨️ Print / Save as PDF (Ctrl + P)
+      </button>
+    </div>
+
+    <h1 id="shopvilla-master-system-design-architecture-engineering-theory-guide">🏛️ ShopVilla — Master System Design, Architecture &amp; Engineering Theory Guide</h1>
+<blockquote><strong>A Comprehensive, 100% Code-Free Architectural Deep-Dive for Software Engineering Interviews, System Design Rounds, and Technical Vivas.</strong></blockquote>
+<blockquote></blockquote>
+<blockquote><em>Designed specifically for mastering the entire end-to-end architecture, concurrency controls, security defenses, and distributed failure modes of the ShopVilla platform in a single day.</em></blockquote>
+<hr class="section-divider" />
+<h2 id="complete-table-of-contents">📑 Complete Table of Contents</h2>
+<ol>
+  <li>[The 1-Day Accelerated Mastery Schedule](#1-the-1-day-accelerated-mastery-schedule)</li>
+  <li>[Executive System Overview &amp; High-Level Architecture](#2-executive-system-overview--high-level-architecture)</li>
+  <li>[Full-Stack Architecture &amp; Component Topology](#3-full-stack-architecture--component-topology)</li>
+  <li>[Database Architecture, Data Modeling &amp; Indexing (MongoDB &amp; Mongoose)](#4-database-architecture-data-modeling--indexing)</li>
+  <li>[Concurrency Control, Race Conditions &amp; Distributed Inventory Management](#5-concurrency-control-race-conditions--distributed-inventory-management)</li>
+  <li>[Payment Gateway Architecture, Cryptographic Verification &amp; Webhooks](#6-payment-gateway-architecture-cryptographic-verification--webhooks)</li>
+  <li>[The Order Fulfillment State Machine &amp; Automated Reconciliation](#7-the-order-fulfillment-state-machine--automated-reconciliation)</li>
+  <li>[Application Security, Cryptography &amp; Defense-in-Depth](#8-application-security-cryptography--defense-in-depth)</li>
+  <li>[DevOps, Containerization &amp; Cloud Deployment Topology](#9-devops-containerization--cloud-deployment-topology)</li>
+  <li>[End-to-End System Walkthroughs (Text-Based Sequence Diagrams)](#10-end-to-end-system-walkthroughs)</li>
+  <li>[Top 30 System Design &amp; Engineering Viva Questions with Model Answers](#11-top-30-system-design--engineering-viva-questions)</li>
+  <li>[Master Theoretical Glossary &amp; Quick-Recall Cheat Sheet](#12-master-theoretical-glossary--quick-recall-cheat-sheet)</li>
+</ol>
+<hr class="section-divider" />
+<h2 id="1-the-1-day-accelerated-mastery-schedule">1. The 1-Day Accelerated Mastery Schedule</h2>
+<p>To master this entire system design and engineering guide within <strong>24 hours</strong>, follow this structured, 6-block study roadmap:</p>
+<div class="table-container"><table>
+<thead>
+<tr>
+  <th>Study Block</th>
+  <th>Time Allocation</th>
+  <th>Module Focus</th>
+  <th>Primary Objectives to Master</th>
+</tr>
+</thead>
+<tbody>
+<tr class="even">
+  <td><strong>Block 1: Foundations</strong></td>
+  <td>08:00 AM – 10:15 AM</td>
+  <td>High-Level Architecture &amp; Component Topology</td>
+  <td>Monolith vs Microservices tradeoffs, Layered architecture, SPA client routing, Axios interceptors pipeline.</td>
+</tr>
+<tr class="odd">
+  <td><strong>Block 2: Data Tier</strong></td>
+  <td>10:30 AM – 01:00 PM</td>
+  <td>Database Architecture &amp; Data Modeling</td>
+  <td>Document vs Relational models, Indexing mechanics (B-Trees, Compound Left-Prefix, TTL), Aggregation pipelines, Snapshot &amp; Soft-Delete patterns.</td>
+</tr>
+<tr class="even">
+  <td><strong>Block 3: Concurrency</strong></td>
+  <td>02:00 PM – 04:15 PM</td>
+  <td>Concurrency Control &amp; Race Conditions</td>
+  <td>The overselling anomaly, Pessimistic vs Optimistic vs Atomic Database Decrements, Compensating Rollback pattern, N+1 query elimination.</td>
+</tr>
+<tr class="odd">
+  <td><strong>Block 4: Payments</strong></td>
+  <td>04:30 PM – 06:45 PM</td>
+  <td>Payment Gateway, Webhooks &amp; State Machines</td>
+  <td>Razorpay &amp; UPI flows, HMAC-SHA256 non-repudiation, Webhook idempotency keys, Order State Machine transitions, Janitor cron reconciliation.</td>
+</tr>
+<tr class="even">
+  <td><strong>Block 5: Security &amp; DevOps</strong></td>
+  <td>07:30 PM – 09:30 PM</td>
+  <td>Defense-in-Depth &amp; Cloud Infrastructure</td>
+  <td>Stateless JWT vs Sessions, bcrypt salt rounds, RBAC, IDOR, NoSQL injection, Docker multi-stage builds, Nginx reverse proxy, Vercel/Render decoupling.</td>
+</tr>
+<tr class="odd">
+  <td><strong>Block 6: Interview Drill</strong></td>
+  <td>09:45 PM – 11:30 PM</td>
+  <td>Top 30 System Design &amp; Viva Questions</td>
+  <td>Verbal drills of the Top 30 technical interview questions; explaining architectures out loud without looking at notes.</td>
+</tr>
+</tbody>
+</table></div>
+<hr class="section-divider" />
+<h2 id="2-executive-system-overview-high-level-architecture">2. Executive System Overview &amp; High-Level Architecture</h2>
+<p>ShopVilla is an enterprise-grade, high-throughput Business-to-Consumer (B2C) e-commerce web platform. It is engineered as a <strong>Decoupled Three-Tier Architecture</strong> consisting of an edge-hosted Single-Page Application (SPA) frontend, a stateless containerized RESTful API application server, and a fully managed distributed document database cluster.</p>
+<pre class="ascii-diagram"><code>+-----------------------------------------------------------------------------------+
+|                                 CLIENT BROWSERS                                   |
+|                   Desktop, Tablet, and Mobile Web Consumers                       |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         | HTTPS (Port 443) / Edge Caching
+                                         v
++-----------------------------------------------------------------------------------+
+|                             EDGE PRESENTATION TIER                                |
+|           Vercel Global Edge Network (CDN) &amp; Static Asset Storage                 |
+|           - Single Page Application (React 18 SPA)                                |
+|           - Client-side Routing &amp; Protected Navigation Guard                      |
+|           - Client-side Token Storage &amp; State Contexts                            |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         | RESTful JSON API Requests / CORS Preflight
+                                         v
++-----------------------------------------------------------------------------------+
+|                             APPLICATION GATEWAY TIER                              |
+|           Render Cloud Infrastructure &amp; Reverse Proxy Routing                     |
+|           - SSL/TLS Termination                                                   |
+|           - Static Asset Compression &amp; Caching Headers                            |
+|           - Request Rate Limiting &amp; Origin Validation                             |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         | Proxied HTTP Requests
+                                         v
++-----------------------------------------------------------------------------------+
+|                               APPLICATION CORE TIER                               |
+|                  Node.js &amp; Express.js Stateless Application Server                |
+|  +---------------------+  +---------------------+  +---------------------------+  |
+|  | Security Middleware |  | Routing Subsystem   |  | Controller Layer          |  |
+|  | - Helmet Headers    |  | - Auth Routes       |  | - Request Parsing         |  |
+|  | - Rate Limiter      |  | - Product Routes    |  | - Response Formatting     |  |
+|  | - Mongo Sanitize    |  | - Order Routes      |  | - Async Error Trapping    |  |
+|  | - CORS Validator    |  | - Payment Routes    |  | - HTTP Status Mapping     |  |
+|  +---------------------+  +---------------------+  +---------------------------+  |
+|                                         |                                         |
+|                                         v                                         |
+|  +-----------------------------------------------------------------------------+  |
+|  | Business Logic &amp; Service Subsystems                                         |  |
+|  | - Razorpay Payment Service (HMAC-SHA256 Signature Verification)             |  |
+|  | - Email Service (SMTP Nodemailer with Dev OTP Fallback)                     |  |
+|  | - Background Janitor Cron (30-Minute Stale Order Reaper)                     |  |
+|  | - Stock Allocation &amp; Compensating Rollback Manager                          |  |
+|  +-----------------------------------------------------------------------------+  |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         | MongoDB Wire Protocol (TLS Encrypted)
+                                         v
++-----------------------------------------------------------------------------------+
+|                               PERSISTENCE DATA TIER                               |
+|                     MongoDB Atlas Cloud Distributed Database                      |
+|  +------------------------------------+  +-------------------------------------+  |
+|  | Primary Read/Write Node            |  | Secondary Read Replicas             |  |
+|  | - Atomic Write Operations          |  | - High-Availability Failover        |  |
+|  | - Document Level Write Locks       |  | - Asynchronous Replication          |  |
+|  +------------------------------------+  +-------------------------------------+  |
+|  +-----------------------------------------------------------------------------+  |
+|  | Collections &amp; Indexing Subsystems                                           |  |
+|  | - Users: Unique Index on Email, Sparse OTP Index                           |  |
+|  | - Products: Compound Index (Category+Price), Full-Text Index (Title+Desc)   |  |
+|  | - Orders: Compound Index (User+CreatedAt), Idempotency Key Index            |  |
+|  | - Blacklist / OTPs: Time-To-Live (TTL) Auto-Expiring Indexes                |  |
+|  +-----------------------------------------------------------------------------+  |
++-----------------------------------------------------------------------------------+</code></pre>
+<h3 id="system-design-constraints-quality-attributes">System Design Constraints &amp; Quality Attributes</h3>
+<ol>
+  <li><strong>High Availability (HA):</strong> The database utilizes a 3-node replica set spread across distinct cloud Availability Zones (AZs) to guarantee automatic failover with zero manual intervention.</li>
+  <li><strong>Data Consistency &amp; Financial Integrity:</strong> For checkout and order placement, strong consistency is strictly enforced. The platform uses database-level atomic operations to ensure no two customers can purchase the same inventory item simultaneously.</li>
+  <li><strong>Stateless Scalability:</strong> The application server maintains zero session state in local server memory. All authentication credentials are encapsulated inside cryptographically signed JSON Web Tokens (JWT). As a result, the Node.js backend can be horizontally scaled across dozens of container instances behind a round-robin load balancer without requiring sticky sessions.</li>
+  <li><strong>Idempotent External Integrations:</strong> Webhooks arriving from payment gateways (Razorpay) can be received multiple times due to automatic gateway retries. The system guarantees idempotency by recording and checking unique event identifiers before executing balance or order state mutations.</li>
+</ol>
+<hr class="section-divider" />
+<h2 id="3-full-stack-architecture-component-topology">3. Full-Stack Architecture &amp; Component Topology</h2>
+<h3 id="why-a-layered-monolith-architecture">Why a Layered Monolith Architecture?</h3>
+<p>In contemporary system design interviews, candidates often rush to propose microservices. In ShopVilla, a <strong>Layered Monolith Architecture</strong> was deliberately selected. The architectural tradeoffs are summarized below:</p>
+<div class="table-container"><table>
+<thead>
+<tr>
+  <th>Architectural Dimension</th>
+  <th>Microservices Approach</th>
+  <th>ShopVilla Layered Monolith Approach</th>
+  <th>Engineering Justification</th>
+</tr>
+</thead>
+<tbody>
+<tr class="even">
+  <td><strong>Network Latency</strong></td>
+  <td>High (inter-service RPC/HTTP overhead)</td>
+  <td>Zero (in-memory function invocations across layers)</td>
+  <td>Sub-50ms API response times without inter-service network hops.</td>
+</tr>
+<tr class="odd">
+  <td><strong>Data Consistency</strong></td>
+  <td>Eventual consistency via distributed sagas</td>
+  <td>Immediate ACID consistency at document level</td>
+  <td>Financial checkout cannot tolerate distributed split-brain inventory anomalies.</td>
+</tr>
+<tr class="even">
+  <td><strong>Deployment Complexity</strong></td>
+  <td>High (service meshes, Kubernetes, distributed logging)</td>
+  <td>Minimal (single unified Docker container)</td>
+  <td>Dramatically lower infrastructure cost and zero distributed orchestration overhead.</td>
+</tr>
+<tr class="odd">
+  <td><strong>Operational Overhead</strong></td>
+  <td>Complex distributed tracing &amp; failure cascading</td>
+  <td>Unified Winston/Morgan logging &amp; centralized error handler</td>
+  <td>Bugs can be diagnosed directly through unified stack traces.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="the-six-application-layers">The Six Application Layers</h3>
+<p>The backend follows the strict <strong>Separation of Concerns (SoC)</strong> principle, isolating each stage of request processing into distinct architectural layers:</p>
+<pre class="ascii-diagram"><code>+-----------------------------------------------------------------------------------+
+| 1. HTTP ROUTING LAYER                                                             |
+|    Maps incoming HTTP method and URI paths to corresponding controller methods.    |
+|    Applies route-specific middleware chains (Authentication, RBAC, Validation).   |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         v
++-----------------------------------------------------------------------------------+
+| 2. SECURITY &amp; VALIDATION MIDDLEWARE LAYER                                         |
+|    - Authenticates JWT Bearer Tokens and unpacks user claims.                     |
+|    - Validates user roles (Admin vs Customer).                                    |
+|    - Sanitizes request payloads against NoSQL injection operators.               |
+|    - Validates request schema via express-validator before invoking controllers.   |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         v
++-----------------------------------------------------------------------------------+
+| 3. CONTROLLER LAYER                                                               |
+|    - Parses query parameters, path parameters, and request body.                  |
+|    - Coordinates calls to business logic services and database models.            |
+|    - Formats outgoing JSON responses with standardized HTTP status codes.         |
+|    - Strictly contains zero raw business logic or SQL/NoSQL queries.              |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         v
++-----------------------------------------------------------------------------------+
+| 4. SERVICE / DOMAIN LOGIC LAYER                                                   |
+|    - Implements business logic (e.g. Razorpay HMAC verification, Email dispatch). |
+|    - Coordinates stock decrement validation and compensating rollbacks.           |
+|    - Encapsulates payment state machine transitions and webhook idempotency.      |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         v
++-----------------------------------------------------------------------------------+
+| 5. DATA ACCESS &amp; OBJECT-DOCUMENT MAPPING (ODM) LAYER                              |
+|    - Mongoose schemas, document models, virtual properties, and hooks.            |
+|    - Query formulation, population rules, schema-level validations.               |
+|    - Defines and enforces single-field, compound, and text indexes.               |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         v
++-----------------------------------------------------------------------------------+
+| 6. PHYSICAL PERSISTENCE TIER                                                      |
+|    - MongoDB Atlas replica set, disk persistence, Write-Ahead Logs (WiredTiger).  |
++-----------------------------------------------------------------------------------+</code></pre>
+<h3 id="centralized-asynchronous-error-handling-strategy">Centralized Asynchronous Error Handling Strategy</h3>
+<p>In typical asynchronous JavaScript architectures, unhandled Promise rejections cause application instability or silent socket hangs. ShopVilla implements a <strong>Two-Tier Error Handling Architecture</strong>:</p>
+<ol>
+  <li><strong>Async Controller Wrapper Pattern (<code class="inline-code">catchAsync</code>):</strong> A higher-order function that wraps every asynchronous controller method in an implicit Promise resolver. If an unhandled exception or rejection occurs inside any controller, it is caught automatically and forwarded to Express's native <code class="inline-code">next(err)</code> pipeline without repetitive try-catch blocks.</li>
+  <li><strong>Custom Operational Error Class (<code class="inline-code">AppError</code>):</strong> Distinguishes between <strong>Operational Errors</strong> (predictable client errors such as invalid passwords, expired tokens, or missing stock) and <strong>Programmer Errors</strong> (unexpected bugs such as null-pointer dereferences or syntax errors). Operational errors carry explicit HTTP status codes (400, 401, 403, 404, 409) and an <code class="inline-code">isOperational: true</code> flag.</li>
+  <li><strong>Global Error Middleware:</strong> A single, centralized middleware that catches all forwarded errors. In development mode, it provides detailed stack traces and error metadata. In production mode, it hides implementation details from end users, preventing information leakage, and logs the error to internal monitoring systems while returning a clean, safe JSON error payload.</li>
+</ol>
+<h3 id="frontend-single-page-application-spa-architectural-theory">Frontend Single-Page Application (SPA) Architectural Theory</h3>
+<p>The client application is built with React 18, Vite, and React Router v6:</p>
+<ul>
+  <li><strong>Client-Side Routing:</strong> The browser downloads a single <code class="inline-code">index.html</code> shell and JavaScript bundles once. All page transitions are handled client-side by manipulating browser History API without performing full-page browser reloads.</li>
+  <li><strong>Protected Navigation Guard:</strong> Client routes are wrapped in a higher-order component that checks authentication state in memory and <code class="inline-code">localStorage</code>. Unauthenticated visitors attempting to access checkout or profile pages are intercepted and redirected to <code class="inline-code">/login</code> with the attempted destination preserved in state.</li>
+  <li><strong>Context API vs Redux Tradeoff:</strong> For ShopVilla's state requirements (Auth session and Cart items), React's built-in Context API was chosen over external libraries like Redux or Zustand. This eliminates unnecessary bundle weight (~15KB saved) and boilerplate while providing scoped global reactivity across the component tree.</li>
+  <li><strong>Axios Interceptor Pipeline:</strong></li>
+  <li><em>Request Interceptor:</em> Automatically inspects local storage and injects the <code class="inline-code">Authorization: Bearer &lt;token&gt;</code> header into every outgoing HTTP request.</li>
+  <li><em>Response Interceptor:</em> Intercepts incoming responses. If a 401 Unauthorized is detected (indicating an expired or revoked JWT), it clears local credentials and dispatches a redirect to the login interface.</li>
+</ul>
+<hr class="section-divider" />
+<h2 id="4-database-architecture-data-modeling-indexing">4. Database Architecture, Data Modeling &amp; Indexing</h2>
+<p>ShopVilla utilizes <strong>MongoDB</strong>, a distributed document-oriented database, managed via the <strong>Mongoose ODM</strong>.</p>
+<h3 id="document-data-modeling-embedding-vs-referencing-tradeoffs">Document Data Modeling: Embedding vs Referencing Tradeoffs</h3>
+<p>The core architectural decision in document databases is deciding whether related data should be <strong>embedded</strong> inside a parent document or <strong>referenced</strong> via ObjectIDs:</p>
+<pre class="ascii-diagram"><code>EMBEDDED PATTERN (One-to-Few, Read-Heavy)
+Example: Cart Items inside User Document, or Order Items inside Order Document
++----------------------------------------------------------------+
+| Order Document (_id: 9001)                                     |
+|   customer: "User #101"                                        |
+|   orderItems: [                                                |
+|     { name: "Running Shoes", price: 2999, quantity: 2 },       |
+|     { name: "Socks", price: 199, quantity: 3 }                 |
+|   ]                                                            |
++----------------------------------------------------------------+
+Benefit: Retrieved in a single disk read without joins ($lookup).
+Tradeoff: Document size limit is 16MB; updates require rewriting the parent document.
+
+REFERENCED PATTERN (One-to-Many, Many-to-Many, Write-Heavy)
+Example: Product Reviews referencing Product ID and User ID
++---------------------------+             +-------------------------------+
+| Review Document (_id: R1) |             | Product Document (_id: P100)  |
+|   product: P100  --------&gt;|             |   title: "Wireless Headphone" |
+|   user: U201              |             |   ratingAverage: 4.8          |
+|   rating: 5               |             +-------------------------------+
++---------------------------+
+Benefit: Boundless growth; independent querying and mutation.
+Tradeoff: Requires an aggregation $lookup stage or secondary query to assemble.</code></pre>
+<h3 id="critical-architectural-patterns-in-data-modeling">Critical Architectural Patterns in Data Modeling</h3>
+<h4>1. The Snapshot Pattern (Order Financial Immutability)</h4>
+<p>In e-commerce, product details (price, title, thumbnail URL) change constantly. If an order references only a product ObjectID, updating a product's price from ₹2,999 to ₹3,499 would retroactively alter the price displayed on historical order receipts.</p>
+<ul>
+  <li><strong>Solution:</strong> ShopVilla copies the exact product title, unit price, and image into the order document at the exact instant the order is created. This creates an <strong>immutable financial snapshot</strong> that preserves legal and accounting integrity forever.</li>
+</ul>
+<h4>2. The Soft Delete Pattern</h4>
+<p>Instead of issuing a permanent database removal (<code class="inline-code">deleteOne</code>), items such as inactive products or deactivated user accounts are marked with an <code class="inline-code">isActive: false</code> or <code class="inline-code">isDeleted: true</code> timestamp.</p>
+<ul>
+  <li><strong>Architectural Benefits:</strong> Preserves referential integrity for historical orders referencing the product, provides a full audit trail for regulatory compliance, and enables instant one-click recovery.</li>
+</ul>
+<h4>3. Single-Field, Compound &amp; Special-Purpose Indexes</h4>
+<p>Without indexes, MongoDB must perform a <strong>Collection Scan (<code class="inline-code">COLLSCAN</code>)</strong>, reading every single document from disk into memory. With indexes, MongoDB performs an <strong>Index Scan (<code class="inline-code">IXSCAN</code>)</strong> using B-Tree data structures with <span class="math">O(\log N)</span> search efficiency.</p>
+<div class="table-container"><table>
+<thead>
+<tr>
+  <th>Index Name</th>
+  <th>Indexed Fields</th>
+  <th>Index Type</th>
+  <th>System Design Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="even">
+  <td><strong>Email Unique Index</strong></td>
+  <td><code class="inline-code">{ email: 1 }</code></td>
+  <td>Unique B-Tree</td>
+  <td>Enforces uniqueness at the database engine level; prevents duplicate accounts under concurrent registration requests.</td>
+</tr>
+<tr class="odd">
+  <td><strong>Product Filter Compound Index</strong></td>
+  <td><code class="inline-code">{ category: 1, price: 1 }</code></td>
+  <td>Compound B-Tree</td>
+  <td>Supports filtered catalog browsing and price sorting. Follows the <strong>Equality-Sort-Range (ESR)</strong> rule.</td>
+</tr>
+<tr class="even">
+  <td><strong>Full-Text Search Index</strong></td>
+  <td><code class="inline-code">{ title: "text", description: "text" }</code></td>
+  <td>Inverted Text Index</td>
+  <td>Provides stemmed, tokenized full-text search across titles and descriptions without third-party search engines like Elasticsearch.</td>
+</tr>
+<tr class="odd">
+  <td><strong>OTP Expiration Index</strong></td>
+  <td><code class="inline-code">{ createdAt: 1 }</code> with <code class="inline-code">expireAfterSeconds: 600</code></td>
+  <td>Time-To-Live (TTL)</td>
+  <td>Automatically purges expired OTP verification documents after 10 minutes, preventing database bloat and closing verification windows.</td>
+</tr>
+<tr class="even">
+  <td><strong>Idempotency Key Index</strong></td>
+  <td><code class="inline-code">{ processedWebhookEventIds: 1 }</code></td>
+  <td>Multi-key Array Index</td>
+  <td>Ensures instantaneous <span class="math">O(1)</span> lookup during webhook ingestion to prevent processing duplicate payment notifications.</td>
+</tr>
+</tbody>
+</table></div>
+<h4>Understanding the Compound Index Left-Prefix Rule</h4>
+<p>When an index is created on <code class="inline-code">{ category: 1, price: 1, rating: -1 }</code>, MongoDB can use this index for queries matching:</p>
+<ol>
+  <li><code class="inline-code">category</code> alone</li>
+  <li><code class="inline-code">category</code> AND <code class="inline-code">price</code></li>
+  <li><code class="inline-code">category</code> AND <code class="inline-code">price</code> AND <code class="inline-code">rating</code></li>
+</ol>
+<p>However, a query filtering solely on <code class="inline-code">price</code> or <code class="inline-code">rating</code> <strong>cannot</strong> utilize this compound index because the search tree is ordered primarily by the leading prefix (<code class="inline-code">category</code>).</p>
+<hr class="section-divider" />
+<h2 id="5-concurrency-control-race-conditions-distributed-inventory-management">5. Concurrency Control, Race Conditions &amp; Distributed Inventory Management</h2>
+<p>One of the most critical topics in e-commerce system design is <strong>concurrency control during checkout</strong>.</p>
+<h3 id="the-overselling-anomaly-race-condition">The Overselling Anomaly (Race Condition)</h3>
+<p>Consider a scenario where only <strong>1 unit</strong> of a limited-edition smartphone remains in stock. Two customers, Alice and Bob, click "Pay Now" at the exact same millisecond.</p>
+<pre class="ascii-diagram"><code>THE RACE CONDITION SCENARIO (WITHOUT ATOMICITY)
+
+Time   Alice's Worker Thread                   Bob's Worker Thread
+--------------------------------------------------------------------------------------
+T1     Read product: stock = 1                 |
+T2     |                                       Read product: stock = 1
+T3     Check: stock (1) &gt;= quantity (1) -&gt; OK  |
+T4     |                                       Check: stock (1) &gt;= quantity (1) -&gt; OK
+T5     Deduct stock: new stock = 0             |
+T6     Write stock = 0 to DB                   |
+T7     |                                       Deduct stock: new stock = 0
+T8     |                                       Write stock = 0 to DB
+--------------------------------------------------------------------------------------
+RESULT: 2 orders created, 2 payments taken, but only 1 physical product exists!
+OVERSELLING ANOMALY OCCURRED!</code></pre>
+<h3 id="concurrency-strategies-compared">Concurrency Strategies Compared</h3>
+<div class="table-container"><table>
+<thead>
+<tr>
+  <th>Concurrency Strategy</th>
+  <th>Mechanism</th>
+  <th>Pros</th>
+  <th>Cons</th>
+</tr>
+</thead>
+<tbody>
+<tr class="even">
+  <td><strong>Pessimistic Locking</strong></td>
+  <td>Locks the database record upon read until the transaction commits.</td>
+  <td>Prevents all race conditions.</td>
+  <td>Severe bottleneck; blocks all other read/write threads; causes thread starvation under high traffic.</td>
+</tr>
+<tr class="odd">
+  <td><strong>Optimistic Concurrency Control (OCC)</strong></td>
+  <td>Reads a version number (<code class="inline-code">__v</code>). Fails update if version changed before write.</td>
+  <td>Good for read-heavy systems with rare collisions.</td>
+  <td>Requires complex client-side retry loops; high transaction abort rates during flash sales.</td>
+</tr>
+<tr class="even">
+  <td><strong>Atomic Database Decrement with Query Predicates (ShopVilla)</strong></td>
+  <td>Uses <code class="inline-code">$inc: { countInStock: -qty }</code> combined with query condition <code class="inline-code">{ countInStock: { $gte: qty } }</code>.</td>
+  <td><strong>Zero application-level locking; executes in a single atomic database operation; maximum throughput.</strong></td>
+  <td>None for single-database instances.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="how-shopvilla-solves-the-race-condition">How ShopVilla Solves the Race Condition</h3>
+<p>ShopVilla leverages MongoDB's <strong>single-document atomicity</strong>. In MongoDB, any write operation modifying a single document is atomic and acquires an exclusive document-level write lock inside the WiredTiger storage engine for that microscopic fraction of a millisecond.</p>
+<p>The update query specifies both the modification and the condition simultaneously:</p>
+<ul>
+  <li><strong>Condition:</strong> Match document with <code class="inline-code">_id = ProductID</code> AND <code class="inline-code">countInStock &gt;= requestedQuantity</code>.</li>
+  <li><strong>Action:</strong> Decrement <code class="inline-code">countInStock</code> by <code class="inline-code">requestedQuantity</code>.</li>
+</ul>
+<p>If Alice and Bob arrive simultaneously:</p>
+<ol>
+  <li>Alice's write lock executes first. The condition <code class="inline-code">countInStock &gt;= 1</code> evaluates to <code class="inline-code">true</code>. Stock becomes <code class="inline-code">0</code>. The database reports <code class="inline-code">matchedCount = 1, modifiedCount = 1</code>.</li>
+  <li>Bob's write lock executes second. The condition <code class="inline-code">countInStock &gt;= 1</code> evaluates to <code class="inline-code">false</code> because the current stock is already <code class="inline-code">0</code>. The database reports <code class="inline-code">matchedCount = 0, modifiedCount = 0</code>.</li>
+  <li>The server checks the write result: since Bob's update matched 0 documents, the server immediately throws an <code class="inline-code">AppError("Insufficient stock available", 400)</code> and aborts Bob's checkout before payment is captured.</li>
+</ol>
+<h3 id="the-compensating-rollback-pattern">The Compensating Rollback Pattern</h3>
+<p>In multi-item orders (e.g. 3 items in cart), inventory deduction is executed sequentially across all items. What happens if items 1 and 2 succeed, but item 3 fails due to insufficient stock?</p>
+<p>ShopVilla implements the <strong>Compensating Rollback Pattern</strong>:</p>
+<ol>
+  <li>The system tracks all products whose stock was successfully decremented in an in-memory stack during the current checkout operation.</li>
+  <li>If any subsequent item fails validation or database decrement, an exception is thrown.</li>
+  <li>The error handler catches the exception and iterates over the rollback stack, issuing reverse atomic increments (<code class="inline-code">$inc: { countInStock: +qty }</code>) for every previously modified product.</li>
+  <li>The system state returns to a 100% clean, non-corrupted state before responding to the user.</li>
+</ol>
+<hr class="section-divider" />
+<h2 id="6-payment-gateway-architecture-cryptographic-verification-webhooks">6. Payment Gateway Architecture, Cryptographic Verification &amp; Webhooks</h2>
+<h3 id="payment-flow-overview-razorpay-direct-upi-qr">Payment Flow Overview (Razorpay &amp; Direct UPI QR)</h3>
+<p>Modern payment gateways never handle credit card data directly on merchant application servers to satisfy <strong>PCI-DSS Level 1</strong> compliance. Instead, a two-phase intent-based architecture is utilized:</p>
+<pre class="ascii-diagram"><code>+--------+                 +-------------------+               +-------------------+
+| CLIENT |                 | SHOPVILLA BACKEND |               | RAZORPAY GATEWAY  |
++--------+                 +-------------------+               +-------------------+
+    |                                |                                   |
+    | 1. POST /api/orders            |                                   |
+    |    (Cart items, Address)       |                                   |
+    |-------------------------------&gt;|                                   |
+    |                                | 2. Validate stock &amp; price         |
+    |                                | 3. Call Orders API                |
+    |                                |----------------------------------&gt;|
+    |                                |                                   |
+    |                                | 4. Return Razorpay Order ID       |
+    |                                |&lt;----------------------------------|
+    |                                |                                   |
+    | 5. Return Order &amp; Token        |                                   |
+    |&lt;-------------------------------|                                   |
+    |                                                                    |
+    | 6. Open Modal / UPI QR Scanner                                     |
+    | 7. User authorizes ₹ amount in UPI / Bank App                      |
+    |-------------------------------------------------------------------&gt;|
+    |                                                                    |
+    | 8. Client receives Payment ID &amp; Cryptographic Signature           |
+    |&lt;-------------------------------------------------------------------|
+    |                                |                                   |
+    | 9. POST /api/orders/verify     |                                   |
+    |    (orderId, paymentId, sig)   |                                   |
+    |-------------------------------&gt;|                                   |
+    |                                | 10. Compute HMAC-SHA256           |
+    |                                |     Matches Gateway Sig?          |
+    |                                |     YES: Transition to 'paid'     |
+    | 11. Confirmation Screen        |                                   |
+    |&lt;-------------------------------|                                   |</code></pre>
+<h3 id="cryptographic-signatures-non-repudiation">Cryptographic Signatures &amp; Non-Repudiation</h3>
+<p>Why can the server not simply trust a client sending <code class="inline-code">{ status: "success", paymentId: "pay_12345" }</code>?</p>
+<p>A malicious user could open Postman and send a fabricated HTTP POST request claiming their ₹50,000 laptop order was paid.</p>
+<p>To prevent this, the payment gateway uses <strong>HMAC-SHA256 (Hash-based Message Authentication Code)</strong>:</p>
+<ol>
+  <li>When Razorpay confirms payment on the client, it generates a cryptographic signature by hashing the string <code class="inline-code">order_id + "|" + payment_id</code> using the merchant's private <strong>Key Secret</strong> as the hashing key.</li>
+  <li>The client forwards the order ID, payment ID, and signature to the ShopVilla backend.</li>
+  <li>The ShopVilla backend independently hashes the exact same <code class="inline-code">order_id + "|" + payment_id</code> string using its own private <strong>Key Secret</strong> (stored securely in environment variables, never exposed to clients).</li>
+  <li>If the computed hash string matches the client-submitted signature character-for-character, mathematical proof is established that the payment was authenticated by Razorpay's servers.</li>
+</ol>
+<h3 id="webhook-event-architecture-failure-resilience">Webhook Event Architecture &amp; Failure Resilience</h3>
+<p>What happens if a customer pays successfully on their phone, but before the browser can send the verification request, the customer's phone runs out of battery, or the cellular connection drops?</p>
+<p>Without webhooks, the merchant's server would believe the order is unpaid, yet the customer's bank account was debited!</p>
+<ul>
+  <li><strong>Webhooks to the Rescue:</strong> Razorpay's server sends a direct server-to-server HTTP POST notification (<code class="inline-code">payment.captured</code>, <code class="inline-code">order.paid</code>, <code class="inline-code">refund.processed</code>) to the ShopVilla backend endpoint (<code class="inline-code">/api/payments/webhook</code>).</li>
+  <li><strong>Raw Body Integrity:</strong> The webhook payload signature is computed over the raw HTTP body bytes. If Express parses the JSON body before signature verification, subtle byte discrepancies (such as whitespace changes) invalidate the signature. ShopVilla captures the raw request buffer specifically for webhook endpoints using <code class="inline-code">express.raw({ type: "application/json" })</code>.</li>
+</ul>
+<h3 id="webhook-idempotency-replay-attack-defense">Webhook Idempotency &amp; Replay Attack Defense</h3>
+<p>Payment gateways implement automated retry mechanisms with exponential backoff: if ShopVilla's server takes longer than 5 seconds to reply with HTTP 200, the gateway resends the exact same webhook 5 minutes later, and again 15 minutes later.</p>
+<p>If an order status update or email dispatch was triggered every time, the customer would receive duplicate fulfillment notices or duplicate inventory operations.</p>
+<ul>
+  <li><strong>Idempotency Implementation:</strong> Every webhook notification includes a unique <code class="inline-code">x-razorpay-event-id</code>. The ShopVilla order document contains an array field <code class="inline-code">processedWebhookEventIds</code>.</li>
+  <li>When a webhook arrives, the server checks if the event ID already exists in the order's array.</li>
+  <li>If it exists, the server immediately returns <code class="inline-code">HTTP 200 OK ("Event already processed")</code> and halts execution.</li>
+  <li>If it does not exist, the server executes the state transition, appends the event ID to the array, and commits the write.</li>
+</ul>
+<hr class="section-divider" />
+<h2 id="7-the-order-fulfillment-state-machine-automated-reconciliation">7. The Order Fulfillment State Machine &amp; Automated Reconciliation</h2>
+<h3 id="the-state-machine-lifecycle">The State Machine Lifecycle</h3>
+<p>ShopVilla models the lifecycle of an order as a formal <strong>Finite State Machine (FSM)</strong>. State transitions are strictly unidirectional to prevent invalid business states:</p>
+<pre class="ascii-diagram"><code>                     [ Order Placed ]
+                            |
+                            v
+                    +---------------+
+                    |    PENDING    |
+                    +---------------+
+                      /           \
+         Payment Fails /           \  Payment Verified
+         30-Min Expiry              \ (Online or COD Placed)
+                    /                 \
+                   v                   v
+          +---------------+     +---------------+
+          |   CANCELLED   |     |     PAID      |
+          +---------------+     +---------------+
+          (Stock Restored)              |
+                                        v
+                                +---------------+
+                                |  PROCESSING   |
+                                +---------------+
+                                        |
+                                        v
+                                +---------------+
+                                |    SHIPPED    |
+                                +---------------+
+                                        |
+                                        v
+                                +---------------+
+                                |   DELIVERED   |
+                                +---------------+</code></pre>
+<h3 id="valid-invalid-state-transitions">Valid &amp; Invalid State Transitions</h3>
+<div class="table-container"><table>
+<thead>
+<tr>
+  <th>Current State</th>
+  <th>Target State</th>
+  <th>Permissibility</th>
+  <th>Triggering Event</th>
+</tr>
+</thead>
+<tbody>
+<tr class="even">
+  <td><code class="inline-code">pending</code></td>
+  <td><code class="inline-code">paid</code></td>
+  <td><strong>Valid</strong></td>
+  <td>Successful cryptographic payment verification or webhook receipt.</td>
+</tr>
+<tr class="odd">
+  <td><code class="inline-code">pending</code></td>
+  <td><code class="inline-code">cancelled</code></td>
+  <td><strong>Valid</strong></td>
+  <td>Customer cancellation or 30-minute expiration reaper cron.</td>
+</tr>
+<tr class="even">
+  <td><code class="inline-code">paid</code></td>
+  <td><code class="inline-code">processing</code></td>
+  <td><strong>Valid</strong></td>
+  <td>Warehouse admin accepts order for packing.</td>
+</tr>
+<tr class="odd">
+  <td><code class="inline-code">processing</code></td>
+  <td><code class="inline-code">shipped</code></td>
+  <td><strong>Valid</strong></td>
+  <td>Logistics carrier scans package and assigns tracking ID.</td>
+</tr>
+<tr class="even">
+  <td><code class="inline-code">shipped</code></td>
+  <td><code class="inline-code">delivered</code></td>
+  <td><strong>Valid</strong></td>
+  <td>Courier marks proof of delivery.</td>
+</tr>
+<tr class="odd">
+  <td><code class="inline-code">delivered</code></td>
+  <td><code class="inline-code">cancelled</code></td>
+  <td><strong>ILLEGAL</strong></td>
+  <td>Delivered items cannot be cancelled; must follow return/refund policy.</td>
+</tr>
+<tr class="even">
+  <td><code class="inline-code">cancelled</code></td>
+  <td><code class="inline-code">paid</code></td>
+  <td><strong>ILLEGAL</strong></td>
+  <td>Expired/cancelled orders cannot accept late payment captures.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="the-janitor-cron-automated-background-reconciliation">The Janitor Cron: Automated Background Reconciliation</h3>
+<p>When users select an online payment option, inventory is temporarily allocated to give them time to enter card or UPI details. However, many users abandon carts during payment without clicking cancel.</p>
+<p>If left unchecked, this creates <strong>Phantom Inventory Depletion</strong>, where products appear "Sold Out" even though no money was ever paid.</p>
+<ul>
+  <li><strong>Solution (The Janitor Cron):</strong> A scheduled background task powered by <code class="inline-code">node-cron</code> runs every 10 minutes.</li>
+  <li>It queries the database for all orders in <code class="inline-code">pending</code> payment status whose <code class="inline-code">createdAt</code> timestamp is older than <strong>30 minutes</strong>.</li>
+  <li>For each expired order:</li>
+</ul>
+<ol>
+  <li>The order state transitions to <code class="inline-code">cancelled</code>.</li>
+  <li>The system executes the compensating stock rollback, atomically incrementing the <code class="inline-code">countInStock</code> of all reserved products back into public circulation.</li>
+  <li>A cancellation audit record is written to the database log.</li>
+</ol>
+<hr class="section-divider" />
+<h2 id="8-application-security-cryptography-defense-in-depth">8. Application Security, Cryptography &amp; Defense-in-Depth</h2>
+<p>ShopVilla follows the principle of <strong>Defense-in-Depth</strong>, implementing multiple overlapping security layers:</p>
+<pre class="ascii-diagram"><code>+-----------------------------------------------------------------------------------+
+| LAYER 1: NETWORK &amp; PERIMETER                                                      |
+| - HTTPS/TLS 1.3 Encryption in transit                                             |
+| - Strict CORS Policy (Only trusted frontend origins permitted)                    |
+| - Helmet Security Headers (HSTS, CSP, Anti-Clickjacking)                          |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         v
++-----------------------------------------------------------------------------------+
+| LAYER 2: TRAFFIC SHAPING &amp; ABUSE PREVENTION                                       |
+| - express-rate-limit (Sliding window IP-based rate limiting)                      |
+| - Sensitive Route Throttling (Stricter limits on /login and /register)            |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         v
++-----------------------------------------------------------------------------------+
+| LAYER 3: INPUT SANITIZATION &amp; VALIDATION                                          |
+| - express-mongo-sanitize (Strips $ and . operators to prevent NoSQL injection)    |
+| - express-validator (Strict type coercion, schema validation, string trimming)    |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         v
++-----------------------------------------------------------------------------------+
+| LAYER 4: IDENTITY &amp; ACCESS CONTROL                                                |
+| - Stateless JWT Bearer Token Authentication                                       |
+| - bcrypt Password Hashing with 12 Salt Rounds                                     |
+| - Role-Based Access Control (Admin vs Customer separation)                        |
+| - Insecure Direct Object Reference (IDOR) Ownership Verification                  |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         v
++-----------------------------------------------------------------------------------+
+| LAYER 5: DATA PERSISTENCE SECURITY                                                |
+| - MongoDB Atlas VPC Peering &amp; IP Access Whitelisting                              |
+| - TLS-Encrypted Database Wire Protocol                                            |
+| - AES-256 Storage Encryption at Rest                                              |
++-----------------------------------------------------------------------------------+</code></pre>
+<h3 id="core-cryptographic-mechanisms">Core Cryptographic Mechanisms</h3>
+<h4>1. JSON Web Tokens (JWT) vs Stateful Server Sessions</h4>
+<ul>
+  <li><strong>Stateful Sessions:</strong> Server creates a session ID, stores session state in Redis or SQL database, and sends a cookie to the client. Every incoming API request requires a database lookup to validate the session.</li>
+  <li><strong>Stateless JWT (ShopVilla):</strong> The server issues a token containing three base64-encoded segments: <code class="inline-code">Header.Payload.Signature</code>. The payload contains user identity (<code class="inline-code">userId</code>, <code class="inline-code">role</code>, <code class="inline-code">exp</code>).</li>
+  <li><strong>The Signature:</strong> The server signs the header and payload using a secret 256-bit key via the <code class="inline-code">HS256</code> algorithm:</li>
+</ul>
+<p>$$\text{Signature} = \text{HMAC-SHA256}(\text{base64UrlEncode}(\text{Header}) + "." + \text{base64UrlEncode}(\text{Payload}), \text{Secret})$$</p>
+<ul>
+  <li>When a request arrives, the server mathematically verifies the signature using its private key in under 1 millisecond without querying any database or cache. This allows the backend to scale to millions of concurrent users.</li>
+</ul>
+<h4>2. bcrypt Password Hashing &amp; Salt Rounds</h4>
+<ul>
+  <li>Passwords are never stored in plaintext or reversible encryption.</li>
+  <li><strong>Salt Generation:</strong> A cryptographically secure pseudo-random 16-byte salt is generated for each password. The salt is combined with the password before hashing, rendering <strong>Rainbow Tables</strong> (precomputed hash tables) completely useless.</li>
+  <li><strong>Key Stretching &amp; Work Factor:</strong> ShopVilla uses <strong>12 salt rounds</strong> ($2^{12} = 4,096$ hashing iterations). This intentionally consumes ~250 milliseconds of CPU time per hash, making brute-force dictionary attacks computationally prohibitive for attackers while remaining imperceptible to legitimate logging-in users.</li>
+</ul>
+<h3 id="owasp-top-10-vulnerabilities-mitigations-in-shopvilla">OWASP Top 10 Vulnerabilities &amp; Mitigations in ShopVilla</h3>
+<div class="table-container"><table>
+<thead>
+<tr>
+  <th>Vulnerability</th>
+  <th>Attack Vector</th>
+  <th>ShopVilla Defense Mechanism</th>
+</tr>
+</thead>
+<tbody>
+<tr class="even">
+  <td><strong>Insecure Direct Object Reference (IDOR)</strong></td>
+  <td>An attacker alters the order ID in <code class="inline-code">GET /api/orders/64a1b2c3d4e5</code> to inspect another customer's private address and purchase history.</td>
+  <td><strong>Query-Level Ownership Scoping:</strong> The controller never queries purely by <code class="inline-code">_id</code>. It queries <code class="inline-code">{ _id: orderId, user: req.user._id }</code>. Unless the user has the <code class="inline-code">admin</code> role, they cannot access documents belonging to other user IDs.</td>
+</tr>
+<tr class="odd">
+  <td><strong>NoSQL Injection</strong></td>
+  <td>Attacker inputs <code class="inline-code">{"$ne": null}</code> into the password field of <code class="inline-code">/login</code>, causing the query <code class="inline-code">{ email: email, password: { $ne: null } }</code> to match the first user without knowing their password.</td>
+  <td><strong><code class="inline-code">express-mongo-sanitize</code>:</strong> Recursively scrubs all incoming request bodies, query strings, and parameters, completely stripping any keys containing dollar signs (<code class="inline-code">$</code>) or dots (<code class="inline-code">.</code>).</td>
+</tr>
+<tr class="even">
+  <td><strong>Cross-Site Scripting (XSS)</strong></td>
+  <td>Attacker posts a product review containing <code class="inline-code">&lt;script&gt;stealCookies()&lt;/script&gt;</code>.</td>
+  <td><strong>Context-Aware React Escaping:</strong> React automatically escapes all strings rendered inside JSX expressions before injecting them into the DOM, treating them strictly as text rather than executable markup.</td>
+</tr>
+<tr class="odd">
+  <td><strong>Cross-Site Request Forgery (CSRF)</strong></td>
+  <td>Malicious third-party site tricks a user's browser into executing an unauthorized state-changing request to ShopVilla.</td>
+  <td><strong>Authorization Header Architecture:</strong> ShopVilla transmits tokens via the <code class="inline-code">Authorization: Bearer &lt;token&gt;</code> HTTP header rather than automatic browser credentials/cookies. Cross-origin sites cannot access or attach these headers without explicit client consent.</td>
+</tr>
+<tr class="even">
+  <td><strong>Account Enumeration</strong></td>
+  <td>Attacker inputs various email addresses to see which ones return "User does not exist" vs "Incorrect password", allowing them to harvest active user emails.</td>
+  <td><strong>Constant-Time Generic Error Messaging:</strong> Both invalid email and invalid password attempts return the identical generic message: <code class="inline-code">"Invalid email or password"</code> with HTTP 401.</td>
+</tr>
+<tr class="odd">
+  <td><strong>Brute-Force &amp; Denial of Service</strong></td>
+  <td>Automated scripts send thousands of login attempts per second.</td>
+  <td><strong>IP-Based Sliding Window Rate Limiting:</strong> Limits clients to 100 requests per 15-minute window for standard APIs, and strict thresholds on authentication routes.</td>
+</tr>
+</tbody>
+</table></div>
+<hr class="section-divider" />
+<h2 id="9-devops-containerization-cloud-deployment-topology">9. DevOps, Containerization &amp; Cloud Deployment Topology</h2>
+<h3 id="containerization-with-docker">Containerization with Docker</h3>
+<p>Docker packages the application code, Node.js runtime, system libraries, and dependencies into an immutable, portable container image that behaves identically in development, staging, and production environments.</p>
+<h4>Multi-Stage Docker Builds</h4>
+<p>ShopVilla uses a multi-stage Docker build pipeline to dramatically minimize production image sizes and eliminate security vulnerabilities:</p>
+<pre class="ascii-diagram"><code>+-----------------------------------------------------------------------------------+
+| STAGE 1: BUILD ENVIRONMENT (Node.js 20 Alpine Full Toolchain)                     |
+| - Installs build tools, Python, node-gyp, and development dependencies.           |
+| - Runs unit tests and builds optimized production bundles.                         |
+| - Total Image Size: ~850 MB                                                       |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         | Copy ONLY compiled build artifacts &amp; production node_modules
+                                         v
++-----------------------------------------------------------------------------------+
+| STAGE 2: PRODUCTION RUNTIME ENVIRONMENT (Minimal Alpine Image)                    |
+| - Discards compilers, source TypeScript files, and devDependencies.               |
+| - Runs container as a non-privileged user (security hardening).                  |
+| - Final Image Size: ~120 MB (86% reduction in attack surface and bandwidth!)      |
++-----------------------------------------------------------------------------------+</code></pre>
+<h3 id="production-cloud-deployment-topology">Production Cloud Deployment Topology</h3>
+<pre class="ascii-diagram"><code>+-----------------------------------------------------------------------------------+
+|                                  PUBLIC INTERNET                                  |
+|                             DNS: shopvilla.vercel.app                             |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         v
++-----------------------------------------------------------------------------------+
+|                              VERCEL EDGE CDN CLOUD                                |
+|  - Hosts Static Client Assets (HTML, CSS, JS chunks)                              |
+|  - Edge Anycast Routing: Serves users from closest global geographic data center.  |
+|  - vercel.json SPA Rewrites: Routes all paths (e.g. /cart, /orders) to index.html |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         | API Calls: https://shopvilla-api.onrender.com
+                                         v
++-----------------------------------------------------------------------------------+
+|                              RENDER WEB SERVICE TIER                              |
+|  - Containerized Linux Host running Node.js 20 runtime.                           |
+|  - Automatic Git-triggered continuous deployments on git push main.               |
+|  - SSL/TLS Termination handled at Render ingress router.                          |
+|  - Environment Variable Injection (JWT secrets, Mongo URIs, Payment keys).        |
+|  - Port Binding: Binds to process.env.PORT dynamically assigned by host.          |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         | TLS Encrypted MongoDB Wire Protocol
+                                         v
++-----------------------------------------------------------------------------------+
+|                           MONGODB ATLAS MANAGED CLOUD                             |
+|  - 3-Node Dedicated Replica Set (1 Primary + 2 Secondaries).                     |
+|  - Continuous automated snapshots and Point-in-Time recovery.                     |
+|  - Strict IP Whitelisting: Blocks all unauthorized inbound network connections.   |
++-----------------------------------------------------------------------------------+</code></pre>
+<h3 id="cross-origin-resource-sharing-cors-mechanics">Cross-Origin Resource Sharing (CORS) Mechanics</h3>
+<p>Because the frontend is hosted on <code class="inline-code">shopvilla.vercel.app</code> and the backend API is hosted on <code class="inline-code">shopvilla-api.onrender.com</code>, browsers enforce the <strong>Same-Origin Policy (SOP)</strong>.</p>
+<ol>
+  <li><strong>Preflight <code class="inline-code">OPTIONS</code> Request:</strong> Before dispatching any mutating request (<code class="inline-code">POST</code>, <code class="inline-code">PUT</code>, <code class="inline-code">DELETE</code>, or requests carrying custom headers like <code class="inline-code">Authorization</code>), the browser automatically dispatches an HTTP <code class="inline-code">OPTIONS</code> preflight request.</li>
+  <li><strong>CORS Validation:</strong> The backend checks the incoming <code class="inline-code">Origin</code> header against an allowed whitelist. If valid, it responds with:</li>
+</ol>
+<ul>
+  <li><code class="inline-code">Access-Control-Allow-Origin: https://shopvilla.vercel.app</code></li>
+  <li><code class="inline-code">Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS</code></li>
+  <li><code class="inline-code">Access-Control-Allow-Headers: Content-Type, Authorization</code></li>
+  <li><code class="inline-code">Access-Control-Allow-Credentials: true</code></li>
+</ul>
+<ol>
+  <li>If the origin is not whitelisted, the preflight fails and the browser blocks the real request before it ever reaches the application controller.</li>
+</ol>
+<hr class="section-divider" />
+<h2 id="10-end-to-end-system-walkthroughs">10. End-to-End System Walkthroughs</h2>
+<h3 id="walkthrough-a-user-registration-otp-verification-password-hashing">Walkthrough A: User Registration, OTP Verification &amp; Password Hashing</h3>
+<pre class="ascii-diagram"><code>User                    React Client                  Backend API                  MongoDB Database
+ |                            |                            |                               |
+ | 1. Enter Name, Email, Pwd  |                            |                               |
+ |---------------------------&gt;|                            |                               |
+ |                            | 2. POST /api/auth/register |                               |
+ |                            |---------------------------&gt;|                               |
+ |                            |                            | 3. Check email uniqueness     |
+ |                            |                            |------------------------------&gt;|
+ |                            |                            |&lt;------------------------------|
+ |                            |                            |    (No duplicate found)       |
+ |                            |                            | 4. Hash password with bcrypt  |
+ |                            |                            |    (12 salt rounds)           |
+ |                            |                            | 5. Generate 6-digit crypto OTP|
+ |                            |                            | 6. Save User (isVerified=false|
+ |                            |                            |    + OTP + 10-min expiry)     |
+ |                            |                            |------------------------------&gt;|
+ |                            |                            |&lt;------------------------------|
+ |                            |                            | 7. Dispatch Email / Fallback  |
+ |                            | 8. 201 Created (Enter OTP) |                               |
+ |                            |&lt;---------------------------|                               |
+ | 9. Enters OTP code         |                            |                               |
+ |---------------------------&gt;|                            |                               |
+ |                            | 10. POST /api/auth/verify  |                               |
+ |                            |---------------------------&gt;|                               |
+ |                            |                            | 11. Compare OTP &amp; Check Expire|
+ |                            |                            |------------------------------&gt;|
+ |                            |                            | 12. Update isVerified = true  |
+ |                            |                            |     Clear OTP fields          |
+ |                            |                            |&lt;------------------------------|
+ |                            | 13. Return Signed JWT      |                               |
+ |                            |&lt;---------------------------|                               |
+ | 14. Redirect to Dashboard  |                            |                               |
+ |&lt;---------------------------|                            |                               |</code></pre>
+<h3 id="walkthrough-b-end-to-end-order-creation-razorpay-upi-payment-execution">Walkthrough B: End-to-End Order Creation &amp; Razorpay/UPI Payment Execution</h3>
+<pre class="ascii-diagram"><code>User                    React Client                  Backend API              Razorpay / UPI        MongoDB
+ |                            |                            |                         |                  |
+ | 1. Clicks "Checkout"       |                            |                         |                  |
+ |---------------------------&gt;|                            |                         |                  |
+ |                            | 2. POST /api/orders        |                         |                  |
+ |                            |---------------------------&gt;|                         |                  |
+ |                            |                            | 3. Atomic stock check   |                  |
+ |                            |                            |    and decrement        |-----------------&gt;|
+ |                            |                            |                         |&lt;-----------------|
+ |                            |                            | 4. Create Order Token   |                  |
+ |                            |                            |------------------------&gt;|                  |
+ |                            |                            |&lt;------------------------|                  |
+ |                            |                            | 5. Save Order (pending) |-----------------&gt;|
+ |                            | 6. Return Razorpay OrderId |                         |&lt;-----------------|
+ |                            |&lt;---------------------------|                         |                  |
+ | 7. Scan QR / Authorize UPI |                            |                         |                  |
+ |----------------------------------------------------------------------------------&gt;|                  |
+ |                            | 8. Payment captured callback with HMAC Signature    |                  |
+ |                            |&lt;-----------------------------------------------------|                  |
+ |                            | 9. POST /api/orders/verify |                         |                  |
+ |                            |---------------------------&gt;|                         |                  |
+ |                            |                            | 10. Compute HMAC-SHA256 |                  |
+ |                            |                            |     Signature matches?  |                  |
+ |                            |                            | 11. Update order 'paid' |-----------------&gt;|
+ |                            | 12. 200 OK (Order Confirmed|                         |&lt;-----------------|
+ |                            |&lt;---------------------------|                         |                  |
+ | 13. View Order Success     |                            |                         |                  |
+ |&lt;---------------------------|                            |                         |                  |</code></pre>
+<hr class="section-divider" />
+<h2 id="11-top-30-system-design-engineering-viva-questions">11. Top 30 System Design &amp; Engineering Viva Questions</h2>
+<h3 id="q1-why-did-you-choose-a-layered-monolith-instead-of-microservices-for-shopvilla">Q1: Why did you choose a Layered Monolith instead of Microservices for ShopVilla?</h3>
+<blockquote><strong>Answer:</strong> Microservices introduce substantial operational complexity, network latency (inter-service HTTP/gRPC overhead), distributed transaction challenges (requiring two-phase commits or saga orchestrations), and higher hosting costs. For ShopVilla's single-domain e-commerce scope, a modular layered monolith provides sub-50ms in-memory function calls, immediate ACID consistency at the document level for inventory, a single deployment pipeline, and unified centralized logging, while maintaining clean separation of concerns across routes, controllers, services, and models.</blockquote>
+<h3 id="q2-how-does-shopvilla-prevent-inventory-overselling-during-high-concurrency-flash-sales">Q2: How does ShopVilla prevent inventory overselling during high-concurrency flash sales?</h3>
+<blockquote><strong>Answer:</strong> We do not rely on slow application-level locks or vulnerable read-then-write sequences. Instead, we use MongoDB's document-level atomicity by issuing atomic updates using the <code class="inline-code">$inc</code> operator with a query predicate: <code class="inline-code">{ _id: productId, countInStock: { $gte: requestedQty } }, { $inc: { countInStock: -requestedQty } }</code>. This executes atomically inside MongoDB's WiredTiger engine. If two users purchase the final item at the exact same millisecond, the first operation decrements stock to 0; the second operation fails the <code class="inline-code">$gte: 1</code> predicate, matches 0 documents, and is immediately rejected before payment can occur.</blockquote>
+<h3 id="q3-what-is-the-compensating-rollback-pattern-and-where-is-it-applied">Q3: What is the Compensating Rollback Pattern and where is it applied?</h3>
+<blockquote><strong>Answer:</strong> When an order contains multiple distinct products, stock is decremented sequentially. If the 3rd product fails due to insufficient stock after products 1 and 2 were successfully decremented, the operation cannot proceed. Because distributed multi-document operations can fail midway, we maintain an in-memory stack of modified product IDs and quantities. Upon encountering an error, the catch block iterates through the stack, issuing compensating atomic increments (<code class="inline-code">$inc: { countInStock: +qty }</code>) to restore the previously decremented items to their exact original counts.</blockquote>
+<h3 id="q4-why-is-the-snapshot-pattern-necessary-for-order-line-items">Q4: Why is the Snapshot Pattern necessary for order line items?</h3>
+<blockquote><strong>Answer:</strong> In e-commerce, product titles, prices, descriptions, and thumbnail URLs are mutable entities that change frequently due to inflation, sales, or supplier updates. If an order document stored only the product's ObjectID and populated it on demand, updating a product's price from ₹2,000 to ₹3,000 would retroactively alter the total price on historical invoices. By taking a snapshot (copying product title, unit price, and image at the instant of purchase) into the embedded <code class="inline-code">orderItems</code> array, the order becomes an immutable financial record.</blockquote>
+<h3 id="q5-how-do-you-verify-razorpay-payments-securely-without-trusting-the-client">Q5: How do you verify Razorpay payments securely without trusting the client?</h3>
+<blockquote><strong>Answer:</strong> The client is never trusted to report payment status. Upon payment completion, Razorpay provides an <code class="inline-code">order_id</code>, a <code class="inline-code">payment_id</code>, and a cryptographic <code class="inline-code">signature</code>. Our backend independently computes an HMAC-SHA256 hash using the string <code class="inline-code">order_id + "|" + payment_id</code> and our secret key (stored strictly in server environment variables). If and only if our computed hash matches the gateway's signature character-for-character, the payment is validated and the order state transitions to <code class="inline-code">paid</code>.</blockquote>
+<h3 id="q6-why-do-we-need-webhooks-if-we-already-have-a-payment-verification-api">Q6: Why do we need Webhooks if we already have a payment verification API?</h3>
+<blockquote><strong>Answer:</strong> If a user completes payment in their bank app or UPI modal, but their mobile browser crashes, battery dies, or cellular connection drops before returning to the web store, the client verification API will never be invoked. The user's bank account is debited, but the merchant's system marks the order as unpaid. Webhooks solve this by providing an independent, asynchronous, server-to-server notification channel directly from Razorpay to ShopVilla, ensuring payment capture even if the client disconnects completely.</blockquote>
+<h3 id="q7-how-does-shopvilla-guarantee-webhook-idempotency">Q7: How does ShopVilla guarantee Webhook Idempotency?</h3>
+<blockquote><strong>Answer:</strong> Payment gateways retry webhook deliveries automatically if our server does not respond within a few seconds. To prevent processing the same payment multiple times, each webhook event contains a unique event identifier. Our order schema maintains a <code class="inline-code">processedWebhookEventIds</code> array. When a webhook arrives, the server checks if the event ID already exists in the array. If found, it immediately responds with HTTP 200 and terminates processing, preventing duplicate stock alterations or double fulfillments.</blockquote>
+<h3 id="q8-what-is-the-purpose-of-the-janitor-cron-job-and-how-does-it-prevent-phantom-inventory-depletion">Q8: What is the purpose of the Janitor Cron Job and how does it prevent phantom inventory depletion?</h3>
+<blockquote><strong>Answer:</strong> When users initiate checkout, inventory is temporarily reserved. However, users frequently abandon their carts during payment without clicking cancel. Without cleanup, these reserved products remain locked indefinitely, causing "phantom stockouts" where other customers cannot purchase available inventory. The Janitor cron runs every 10 minutes, querying for pending orders older than 30 minutes, transitioning their status to <code class="inline-code">cancelled</code>, and executing compensating atomic stock increments to release the reserved inventory back to the store.</blockquote>
+<h3 id="q9-explain-the-difference-between-stateless-jwt-and-stateful-session-based-authentication">Q9: Explain the difference between Stateless JWT and Stateful Session-based Authentication.</h3>
+<blockquote><strong>Answer:</strong> Stateful sessions store user session records in server memory or a centralized store (like Redis) and assign a session ID cookie to the client; every API request requires a database lookup. Stateless JWT embeds user claims (<code class="inline-code">id</code>, <code class="inline-code">role</code>, <code class="inline-code">expiry</code>) directly in a cryptographically signed token sent via the <code class="inline-code">Authorization: Bearer</code> header. The server verifies the token's cryptographic signature in under 1ms using CPU math without querying any database or cache. This allows the backend to scale horizontally across multiple instances without shared session state.</blockquote>
+<h3 id="q10-how-does-bcrypt-protect-user-passwords-against-rainbow-table-and-brute-force-attacks">Q10: How does bcrypt protect user passwords against Rainbow Table and Brute-Force attacks?</h3>
+<blockquote><strong>Answer:</strong> bcrypt incorporates a unique, cryptographically random salt with each password, ensuring that two users with identical passwords have completely distinct hashes, which neutralizes Rainbow Table attacks. Furthermore, bcrypt uses an adaptive work factor (salt rounds). ShopVilla uses 12 rounds ($2^{12} = 4,096$ iterations), intentionally requiring ~250ms of CPU computation per hash. While this delay is imperceptible for a single user login, it makes brute-force attacks computing billions of password combinations computationally impossible.</blockquote>
+<h3 id="q11-what-is-an-insecure-direct-object-reference-idor-vulnerability-and-how-is-it-prevented-in-shopvilla">Q11: What is an Insecure Direct Object Reference (IDOR) vulnerability and how is it prevented in ShopVilla?</h3>
+<blockquote><strong>Answer:</strong> IDOR occurs when an application exposes a reference to an internal database object (such as an order ID in <code class="inline-code">/api/orders/:id</code>) and fails to verify that the requesting user owns that object. A malicious customer could increment the ID to view other customers' orders and personal addresses. ShopVilla prevents IDOR by scoping all queries by user ownership: <code class="inline-code">Order.findOne({ _id: req.params.id, user: req.user._id })</code>. Unless the authenticated user possesses the <code class="inline-code">admin</code> role, queries for records belonging to other users return HTTP 404 Not Found.</blockquote>
+<h3 id="q12-how-does-express-mongo-sanitize-prevent-nosql-injection-attacks">Q12: How does <code class="inline-code">express-mongo-sanitize</code> prevent NoSQL Injection attacks?</h3>
+<blockquote><strong>Answer:</strong> In MongoDB, query operators start with a dollar sign (such as <code class="inline-code">$gt</code>, <code class="inline-code">$ne</code>, <code class="inline-code">$where</code>). If a client submits a JSON payload like <code class="inline-code">{"email": "admin@shopvilla.com", "password": {"$ne": null}}</code>, a vulnerable server querying <code class="inline-code">{ email, password }</code> would match the admin user because their password is "not equal to null". <code class="inline-code">express-mongo-sanitize</code> intercepts all incoming request bodies, query parameters, and URL params, stripping out any keys that begin with <code class="inline-code">$</code> or contain dots (<code class="inline-code">.</code>), completely neutralizing operator injection before it reaches controllers.</blockquote>
+<h3 id="q13-what-is-the-left-prefix-rule-in-mongodb-compound-indexes">Q13: What is the Left-Prefix Rule in MongoDB Compound Indexes?</h3>
+<blockquote><strong>Answer:</strong> A compound index on fields <code class="inline-code">{ A: 1, B: 1, C: 1 }</code> creates a single B-Tree sorted hierarchically starting with field A, then B within A, then C within B. Under the Left-Prefix Rule, MongoDB can utilize this index for queries filtering on: (1) <code class="inline-code">A</code>, (2) <code class="inline-code">A</code> and <code class="inline-code">B</code>, or (3) <code class="inline-code">A</code>, <code class="inline-code">B</code>, and <code class="inline-code">C</code>. However, queries filtering exclusively on <code class="inline-code">B</code> or <code class="inline-code">C</code> cannot use this index because the root sorting begins with <code class="inline-code">A</code>.</blockquote>
+<h3 id="q14-what-is-the-purpose-of-time-to-live-ttl-indexes-in-shopvilla">Q14: What is the purpose of Time-To-Live (TTL) Indexes in ShopVilla?</h3>
+<blockquote><strong>Answer:</strong> TTL indexes are special single-field indexes on date fields that MongoDB uses to automatically delete documents after a specified number of seconds. In ShopVilla, we apply a TTL index <code class="inline-code">{ createdAt: 1 }, { expireAfterSeconds: 600 }</code> on OTP verification records and temporary blacklisted tokens. MongoDB's background thread automatically removes documents older than 10 minutes, eliminating the need for manual cleanup scripts and preventing stale verification codes from being exploited.</blockquote>
+<h3 id="q15-explain-the-n-1-query-problem-in-database-retrieval-and-how-shopvilla-avoids-it">Q15: Explain the N+1 Query Problem in database retrieval and how ShopVilla avoids it.</h3>
+<blockquote><strong>Answer:</strong> The N+1 query problem occurs when an application executes 1 initial query to fetch N parent records (e.g. 20 orders), and then executes N secondary queries (1 per order) in a loop to fetch associated child data (e.g. user details), resulting in $1 + N = 21$ separate network round-trips to the database. ShopVilla avoids this by using Mongoose's <code class="inline-code">.populate()</code> or MongoDB Aggregation <code class="inline-code">$lookup</code> pipelines, which fetch all related user documents in a single batched query using the <code class="inline-code">$in</code> operator, reducing 21 round-trips to exactly 2.</blockquote>
+<h3 id="q16-why-are-multi-stage-docker-builds-crucial-for-production-deployments">Q16: Why are Multi-Stage Docker Builds crucial for production deployments?</h3>
+<blockquote><strong>Answer:</strong> In a single-stage build, the final production container contains compilers (gcc, make, python), source code, development dependencies, and npm cache, resulting in an image size of 800MB–1GB. Multi-stage builds compile artifacts in an initial build container, then copy only the compiled production output and production dependencies into a clean, minimal Alpine Linux base image (~100MB). This reduces download and cold-start times by 85%, saves bandwidth, and eliminates build tools from the container to drastically reduce the security attack surface.</blockquote>
+<h3 id="q17-what-role-does-nginx-play-as-a-reverse-proxy-in-the-shopvilla-architecture">Q17: What role does Nginx play as a Reverse Proxy in the ShopVilla architecture?</h3>
+<blockquote><strong>Answer:</strong> Nginx sits between the public internet and the Node.js application server. It performs: (1) SSL/TLS termination, decrypting HTTPS requests so the Node.js process does not consume CPU cycles on cryptographic handshakes; (2) Static file offloading, serving pre-compressed images, CSS, and JS directly from disk with optimal caching headers; (3) Reverse proxy buffering, protecting Node's single-threaded event loop from slow client connections; and (4) Security header injection and request size throttling.</blockquote>
+<h3 id="q18-why-is-vercel-json-required-for-react-single-page-applications-deployed-on-vercel">Q18: Why is <code class="inline-code">vercel.json</code> required for React Single-Page Applications deployed on Vercel?</h3>
+<blockquote><strong>Answer:</strong> In a React SPA, client-side routing is handled by React Router in the browser. When a user navigates to <code class="inline-code">/cart</code> or <code class="inline-code">/orders</code> from the UI, the browser does not request a new page. However, if the user hits refresh on <code class="inline-code">https://shopvilla.vercel.app/cart</code>, the browser requests the literal file <code class="inline-code">/cart</code> from Vercel's static server. Because <code class="inline-code">/cart</code> does not exist on disk, Vercel would return HTTP 404. The <code class="inline-code">vercel.json</code> rewrite rule <code class="inline-code">{ "source": "/(.*)", "destination": "/index.html" }</code> instructs the CDN to rewrite all inbound paths to <code class="inline-code">index.html</code>, allowing React Router to inspect the URL and render the correct view.</blockquote>
+<h3 id="q19-how-does-shopvilla-prevent-cross-site-request-forgery-csrf">Q19: How does ShopVilla prevent Cross-Site Request Forgery (CSRF)?</h3>
+<blockquote><strong>Answer:</strong> CSRF relies on browsers automatically attaching session cookies to cross-origin HTTP requests. ShopVilla uses stateless token authentication where the client explicitly transmits the JWT in the <code class="inline-code">Authorization: Bearer &lt;token&gt;</code> HTTP header. Because malicious third-party websites cannot instruct a user's browser to inject arbitrary HTTP headers on cross-origin requests without CORS approval, CSRF attacks are fundamentally neutralized without requiring traditional anti-CSRF synchronizer tokens.</blockquote>
+<h3 id="q20-what-is-the-purpose-of-the-catchasync-wrapper-pattern-in-express-controllers">Q20: What is the purpose of the <code class="inline-code">catchAsync</code> wrapper pattern in Express controllers?</h3>
+<blockquote><strong>Answer:</strong> In Express, unhandled asynchronous exceptions inside an <code class="inline-code">async</code> controller cause unhandled Promise rejections that can leave HTTP sockets hanging or crash the Node.js event loop. Writing <code class="inline-code">try { ... } catch (err) { next(err); }</code> in every single controller method introduces excessive boilerplate. <code class="inline-code">catchAsync</code> is a clean higher-order function that wraps any async controller function in <code class="inline-code">(req, res, next) =&gt; { fn(req, res, next).catch(next); }</code>, automatically routing any runtime rejection directly into Express's global centralized error handling middleware.</blockquote>
+<h3 id="q21-explain-the-difference-between-operational-errors-and-programmer-errors">Q21: Explain the difference between Operational Errors and Programmer Errors.</h3>
+<blockquote><strong>Answer:</strong> Operational errors represent foreseeable, unavoidable runtime failures in a correct program (e.g. invalid user input, expired JWT, resource not found, insufficient stock). These are handled gracefully by throwing an <code class="inline-code">AppError</code> with a specific HTTP status code and a user-friendly message. Programmer errors are bugs in the application code itself (e.g. syntax errors, passing undefined to a function, unhandled null references). When a programmer error occurs in production, the global error handler logs the stack trace internally, returns a generic HTTP 500 message to prevent information leakage, and triggers alerts for developer remediation.</blockquote>
+<h3 id="q22-what-are-helmet-security-headers-and-name-three-specific-protections-they-provide">Q22: What are Helmet security headers and name three specific protections they provide?</h3>
+<blockquote><strong>Answer:</strong> Helmet is an Express middleware that sets secure HTTP response headers:</blockquote>
+<blockquote>1. <code class="inline-code">Strict-Transport-Security (HSTS)</code>: Enforces that browsers only connect over secure HTTPS connections, preventing SSL-stripping attacks.</blockquote>
+<blockquote>2. <code class="inline-code">X-Content-Type-Options: nosniff</code>: Prevents browsers from MIME-sniffing a response away from the declared content-type, blocking malicious script execution disguised as images.</blockquote>
+<blockquote>3. <code class="inline-code">X-Frame-Options: SAMEORIGIN</code>: Prevents the website from being rendered inside an <code class="inline-code">&lt;iframe&gt;</code> on external sites, neutralizing Clickjacking attacks.</blockquote>
+<h3 id="q23-why-do-we-use-express-raw-type-application-json-exclusively-on-the-webhook-route">Q23: Why do we use <code class="inline-code">express.raw({ type: 'application/json' })</code> exclusively on the webhook route?</h3>
+<blockquote><strong>Answer:</strong> Razorpay calculates its webhook cryptographic HMAC-SHA256 signature using the raw, unparsed byte stream of the incoming HTTP request body. If the global <code class="inline-code">express.json()</code> middleware parses the body first, differences in key serialization, spacing, or character encoding will cause the computed hash to diverge from the gateway signature, failing verification. Using <code class="inline-code">express.raw</code> preserves the byte-for-byte exact payload for cryptographic verification.</blockquote>
+<h3 id="q24-how-does-mongodb-s-wiredtiger-storage-engine-achieve-concurrency-without-table-locks">Q24: How does MongoDB's WiredTiger storage engine achieve concurrency without table locks?</h3>
+<blockquote><strong>Answer:</strong> Unlike older engines that used global or database-level locks, WiredTiger uses <strong>document-level concurrency control</strong> and Multi-Version Concurrency Control (MVCC). Multiple client threads can read and write to different documents within the exact same collection simultaneously. Write locks are applied only at the granular level of the individual document being updated for the microscopic duration of the write, yielding massive throughput for concurrent read/write workloads.</blockquote>
+<h3 id="q25-what-is-the-difference-between-authentication-and-authorization">Q25: What is the difference between Authentication and Authorization?</h3>
+<blockquote><strong>Answer:</strong> Authentication is the process of verifying <em>who</em> a user is (e.g. verifying an email and password or validating a signed JWT Bearer token). Authorization is the process of determining <em>what permissions</em> the authenticated user has (e.g. verifying that <code class="inline-code">req.user.role === 'admin'</code> before allowing access to product creation, catalog deletion, or revenue dashboards).</blockquote>
+<h3 id="q26-what-is-the-soft-delete-pattern-and-why-is-it-preferred-over-hard-deletes-for-products">Q26: What is the Soft Delete pattern and why is it preferred over hard deletes for products?</h3>
+<blockquote><strong>Answer:</strong> A hard delete physically removes a document from the database with <code class="inline-code">deleteOne()</code>. If a product is hard-deleted, existing customer orders referencing that product's ID will encounter broken links or null pointer exceptions during population. A soft delete instead sets <code class="inline-code">{ isDeleted: true, deletedAt: new Date() }</code>. The product is filtered out from the customer store catalog, but historical order history, sales analytics, and audit compliance remain completely intact.</blockquote>
+<h3 id="q27-how-does-shopvilla-ensure-that-an-admin-user-cannot-accidentally-be-demoted-or-locked-out">Q27: How does ShopVilla ensure that an admin user cannot accidentally be demoted or locked out?</h3>
+<blockquote><strong>Answer:</strong> The system uses strict Role-Based Access Control (RBAC) middleware. The initial admin is seeded via an idempotent seeding script with explicit credentials. Updates to user roles require administrative privileges, and controller-level guards ensure an administrator cannot modify their own role or delete their own administrative account.</blockquote>
+<h3 id="q28-how-does-the-axios-interceptor-pattern-improve-frontend-architecture">Q28: How does the Axios Interceptor pattern improve frontend architecture?</h3>
+<blockquote><strong>Answer:</strong> Without interceptors, every single API call across dozens of components must manually read <code class="inline-code">localStorage</code>, format the <code class="inline-code">Authorization: Bearer</code> header, and handle potential 401 token expiry errors. Axios request interceptors automatically inject the token into every outbound HTTP request in a centralized pipeline. Axios response interceptors intercept all inbound responses: if a 401 Unauthorized is detected, the interceptor automatically clears the stale token, updates the global AuthContext, and redirects the user to the login screen.</blockquote>
+<h3 id="q29-what-happens-if-render-s-free-tier-spins-down-due-to-inactivity-and-how-does-the-architecture-handle-it">Q29: What happens if Render's free tier spins down due to inactivity, and how does the architecture handle it?</h3>
+<blockquote><strong>Answer:</strong> Free-tier cloud instances spin down after 15 minutes of zero traffic to conserve compute resources. The first request after a period of dormancy encounters a "cold start" delay of 30–50 seconds while the container allocates memory and starts the Node.js runtime. ShopVilla provides a lightweight <code class="inline-code">/api/health</code> endpoint that can be pinged by automated external uptime monitors (e.g. UptimeRobot or cron jobs) every 14 minutes, keeping the container warm and eliminating cold-start latency for active users.</blockquote>
+<h3 id="q30-if-shopvilla-needed-to-scale-from-1-000-to-1-000-000-daily-active-users-what-architectural-changes-would-you-make">Q30: If ShopVilla needed to scale from 1,000 to 1,000,000 daily active users, what architectural changes would you make?</h3>
+<blockquote><strong>Answer:</strong></blockquote>
+<blockquote>1. <strong>Caching Tier (Redis):</strong> Deploy a Redis cluster in front of MongoDB to cache high-read catalog queries, product details, and category listings with TTL invalidation, reducing database load by 80%.</blockquote>
+<blockquote>2. <strong>Database Read Replicas:</strong> Configure Mongoose to route all read queries (<code class="inline-code">find</code>, <code class="inline-code">findOne</code>) to MongoDB Atlas secondary replica set nodes with <code class="inline-code">readPreference: "secondaryPreferred"</code>, reserving the primary node exclusively for write operations (<code class="inline-code">insert</code>, <code class="inline-code">update</code>, <code class="inline-code">delete</code>).</blockquote>
+<blockquote>3. <strong>Horizontal API Scaling:</strong> Run the Node.js backend as a stateless cluster inside Kubernetes or AWS ECS behind an Application Load Balancer (ALB) with auto-scaling policies based on CPU utilization and request latency.</blockquote>
+<blockquote>4. <strong>Asynchronous Task Queue (BullMQ / RabbitMQ):</strong> Offload non-critical tasks (order confirmation emails, invoice generation, webhooks processing, inventory analytics) to background worker processes via message queues so user-facing HTTP request-response cycles remain under 50ms.</blockquote>
+<hr class="section-divider" />
+<h2 id="12-master-theoretical-glossary-quick-recall-cheat-sheet">12. Master Theoretical Glossary &amp; Quick-Recall Cheat Sheet</h2>
+<div class="table-container"><table>
+<thead>
+<tr>
+  <th>Technical Concept / Term</th>
+  <th>Categorization</th>
+  <th>Architectural Definition &amp; System Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="even">
+  <td><strong>ACID</strong></td>
+  <td>Database Theory</td>
+  <td><strong>Atomicity, Consistency, Isolation, Durability.</strong> Guarantees that database transactions are processed reliably.</td>
+</tr>
+<tr class="odd">
+  <td><strong>BASE</strong></td>
+  <td>Distributed Systems</td>
+  <td><strong>Basically Available, Soft-state, Eventual consistency.</strong> Contrast to ACID; prioritizes availability over immediate consistency.</td>
+</tr>
+<tr class="even">
+  <td><strong>B-Tree</strong></td>
+  <td>Data Structures</td>
+  <td>Self-balancing tree data structure used by MongoDB for indexing; provides logarithmic <span class="math">O(\log N)</span> search, insert, and delete.</td>
+</tr>
+<tr class="odd">
+  <td><strong>BSON</strong></td>
+  <td>Serialization</td>
+  <td><strong>Binary JSON.</strong> High-efficiency binary-encoded serialization format used by MongoDB to store documents and perform queries.</td>
+</tr>
+<tr class="even">
+  <td><strong>CORS</strong></td>
+  <td>Browser Security</td>
+  <td><strong>Cross-Origin Resource Sharing.</strong> HTTP-header-based mechanism that allows a server to indicate any origins other than its own from which a browser should permit loading resources.</td>
+</tr>
+<tr class="odd">
+  <td><strong>CSP</strong></td>
+  <td>Web Security</td>
+  <td><strong>Content Security Policy.</strong> HTTP header restricting resources (scripts, images) the browser is allowed to load for a given page.</td>
+</tr>
+<tr class="even">
+  <td><strong>ESR Rule</strong></td>
+  <td>Database Optimization</td>
+  <td><strong>Equality, Sort, Range.</strong> The optimal sequence for arranging fields in a MongoDB compound index.</td>
+</tr>
+<tr class="odd">
+  <td><strong>FSM</strong></td>
+  <td>Software Engineering</td>
+  <td><strong>Finite State Machine.</strong> Mathematical model of computation where an entity is in exactly one state at any given time with defined transitions.</td>
+</tr>
+<tr class="even">
+  <td><strong>HMAC-SHA256</strong></td>
+  <td>Cryptography</td>
+  <td>Hash-based Message Authentication Code using SHA-256; ensures authenticity and integrity using a shared secret key.</td>
+</tr>
+<tr class="odd">
+  <td><strong>IDOR</strong></td>
+  <td>Application Security</td>
+  <td><strong>Insecure Direct Object Reference.</strong> Access control vulnerability where an application uses user-supplied input to access objects directly without authorization checks.</td>
+</tr>
+<tr class="even">
+  <td><strong>Idempotency</strong></td>
+  <td>API Design</td>
+  <td>Property of an operation where applying it multiple times produces the exact same outcome as applying it once.</td>
+</tr>
+<tr class="odd">
+  <td><strong>JWT</strong></td>
+  <td>Authentication</td>
+  <td><strong>JSON Web Token.</strong> Open standard (RFC 7519) compact, URL-safe means of securely transmitting claims between parties as a JSON object.</td>
+</tr>
+<tr class="even">
+  <td><strong>LRU Cache</strong></td>
+  <td>System Design</td>
+  <td><strong>Least Recently Used.</strong> Cache eviction strategy that discards the least recently accessed items first when cache capacity is exceeded.</td>
+</tr>
+<tr class="odd">
+  <td><strong>MVCC</strong></td>
+  <td>Database Concurrency</td>
+  <td><strong>Multi-Version Concurrency Control.</strong> Database method allowing concurrent reads and writes without locking entire tables or documents.</td>
+</tr>
+<tr class="even">
+  <td><strong>N+1 Problem</strong></td>
+  <td>Query Optimization</td>
+  <td>Performance antipattern where an application issues 1 query for parent records and N additional queries for each child record.</td>
+</tr>
+<tr class="odd">
+  <td><strong>NoSQL Injection</strong></td>
+  <td>Application Security</td>
+  <td>Attack where malicious input containing database operators (<code class="inline-code">$gt</code>, <code class="inline-code">$ne</code>) alters the structure of a database query.</td>
+</tr>
+<tr class="even">
+  <td><strong>PCI-DSS</strong></td>
+  <td>Regulatory Compliance</td>
+  <td><strong>Payment Card Industry Data Security Standard.</strong> Security standards for organizations handling credit card transactions.</td>
+</tr>
+<tr class="odd">
+  <td><strong>RBAC</strong></td>
+  <td>Security Architecture</td>
+  <td><strong>Role-Based Access Control.</strong> Restricting system access to authorized users based on predefined roles (e.g. Admin, Customer).</td>
+</tr>
+<tr class="even">
+  <td><strong>Reverse Proxy</strong></td>
+  <td>Network Architecture</td>
+  <td>Server sitting in front of web servers, forwarding client requests and returning server responses; provides SSL, caching, and rate limiting.</td>
+</tr>
+<tr class="odd">
+  <td><strong>SPA</strong></td>
+  <td>Web Architecture</td>
+  <td><strong>Single-Page Application.</strong> Web app that interacts with the user by dynamically rewriting the current web page rather than loading entire new pages from a server.</td>
+</tr>
+<tr class="even">
+  <td><strong>TTL Index</strong></td>
+  <td>Database Indexing</td>
+  <td><strong>Time-To-Live Index.</strong> Automated index that purges documents from a MongoDB collection after a designated expiration interval.</td>
+</tr>
+<tr class="odd">
+  <td><strong>Virtual DOM</strong></td>
+  <td>UI Engineering</td>
+  <td>Lightweight in-memory representation of the real DOM tree used by React to compute minimal required DOM mutations via diffing.</td>
+</tr>
+<tr class="even">
+  <td><strong>WiredTiger</strong></td>
+  <td>Database Storage</td>
+  <td>The default, high-performance, document-level locking storage engine utilized by MongoDB.</td>
+</tr>
+<tr class="odd">
+  <td><strong>XSS</strong></td>
+  <td>Web Security</td>
+  <td><strong>Cross-Site Scripting.</strong> Vulnerability allowing attackers to inject malicious client-side scripts into web pages viewed by other users.</td>
+</tr>
+</tbody>
+</table></div>
+<hr class="section-divider" />
+<p><em>End of Guide — ShopVilla Engineering System Design &amp; Theory Master Study Guide.</em></p>
+
+  </div>
+</body>
+</html>
