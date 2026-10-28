@@ -86,7 +86,6 @@ const register = catchAsync(async (req, res, next) => {
     email: user.email,
     ...(!emailDispatched && { devOtp: plainOtp }),
   });
-  });
 });
 
 // Verify Email using OTP
