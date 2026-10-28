@@ -10,6 +10,7 @@ const ForgotPasswordPage = () => {
   const [step, setStep] = useState(1); // 1: Enter email, 2: Enter OTP & New Password
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
+  const [devOtp, setDevOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,10 +21,14 @@ const ForgotPasswordPage = () => {
     setMessage({ text: '', type: '' });
     try {
       setLoading(true);
-      await forgotPassword(email);
+      const res = await forgotPassword(email);
       setStep(2);
+      if (res?.devOtp) {
+        setDevOtp(res.devOtp);
+        setOtp(res.devOtp);
+      }
       setMessage({
-        text: 'A reset OTP has been dispatched to your email address.',
+        text: res?.message || 'A reset OTP has been dispatched to your email address.',
         type: 'info',
       });
     } catch (err) {
@@ -111,7 +116,28 @@ const ForgotPasswordPage = () => {
             </button>
           </form>
         ) : (
-          <form onSubmit={handleResetPassword}>
+          <>
+            {devOtp && (
+              <div className="alert alert-warning border-0 rounded-4 shadow-sm py-3 px-3 mb-3">
+                <div className="d-flex align-items-center justify-content-between">
+                  <div>
+                    <span className="badge bg-warning text-dark mb-1">Demo Mode</span>
+                    <p className="mb-0 small text-muted">
+                      Reset OTP (Render free tier SMTP block fallback):
+                    </p>
+                    <strong className="fs-5 text-danger letter-spacing-md">{devOtp}</strong>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-danger"
+                    onClick={() => setOtp(devOtp)}
+                  >
+                    Auto Fill
+                  </button>
+                </div>
+              </div>
+            )}
+            <form onSubmit={handleResetPassword}>
             <div className="mb-3">
               <label className="form-label small fw-semibold">6-Digit OTP Code</label>
               <input
@@ -161,6 +187,7 @@ const ForgotPasswordPage = () => {
               )}
             </button>
           </form>
+        </>
         )}
 
         <div className="mt-4 text-center small">

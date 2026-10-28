@@ -66,28 +66,26 @@ const register = catchAsync(async (req, res, next) => {
   const plainOtp = await generateAndSaveOtp(user.email, 'VERIFICATION', user._id);
 
   const isMockEmail = !process.env.EMAIL_USER || !process.env.EMAIL_PASS;
+  let emailDispatched = false;
 
   // Send verification email via Nodemailer
   if (!isMockEmail) {
     try {
       await sendVerificationOtpEmail(user.email, plainOtp, user.name);
+      emailDispatched = true;
     } catch (err) {
-      console.error('[Email Error] Failed to send verification email:', err.message);
-      return res.status(502).json({
-        success: false,
-        message: `Account registered, but failed to deliver verification email (${err.message}). Please check your SMTP credentials.`,
-        email: user.email,
-      });
+      console.error('[Email Error] Failed to send verification email (Render Free Tier blocks outbound SMTP):', err.message);
     }
   }
 
   res.status(200).json({
     success: true,
-    message: isMockEmail
-      ? "If this email can be used to create an account, we've sent a verification OTP to it. (Demo Mode: OTP printed in server terminal and shown on screen)"
-      : "If this email can be used to create an account, we've sent a verification OTP to it.",
+    message: emailDispatched
+      ? "Account created! We've sent a 6-digit verification code to your email."
+      : "Account registered! (Cloud SMTP notice: Render free tier blocks outbound SMTP ports. Use the on-screen code below to verify).",
     email: user.email,
-    ...(isMockEmail && { devOtp: plainOtp }),
+    ...(!emailDispatched && { devOtp: plainOtp }),
+  });
   });
 });
 
@@ -124,25 +122,23 @@ const resendVerificationOTP = catchAsync(async (req, res, next) => {
 
   const plainOtp = await generateAndSaveOtp(user.email, 'VERIFICATION', user._id);
   const isMockEmail = !process.env.EMAIL_USER || !process.env.EMAIL_PASS;
+  let emailDispatched = false;
 
   if (!isMockEmail) {
     try {
       await sendVerificationOtpEmail(user.email, plainOtp, user.name);
+      emailDispatched = true;
     } catch (err) {
-      console.error('[Email Error] Failed to resend verification email:', err.message);
-      return res.status(502).json({
-        success: false,
-        message: `Failed to deliver verification email (${err.message}). Please check SMTP credentials.`,
-      });
+      console.error('[Email Error] Failed to resend verification email (Render Free Tier blocks outbound SMTP):', err.message);
     }
   }
 
   res.status(200).json({
     success: true,
-    message: isMockEmail
-      ? 'A fresh verification OTP has been generated (Demo Mode: Check server terminal or screen)'
-      : 'A fresh verification OTP has been sent to your email.',
-    ...(isMockEmail && { devOtp: plainOtp }),
+    message: emailDispatched
+      ? 'A fresh verification OTP has been sent to your email.'
+      : 'Fresh verification OTP generated (Render Free Tier notice: use the on-screen code below).',
+    ...(!emailDispatched && { devOtp: plainOtp }),
   });
 });
 
@@ -214,22 +210,23 @@ const forgotPassword = catchAsync(async (req, res, next) => {
 
   const plainOtp = await generateAndSaveOtp(email, 'RESET_PASSWORD', user._id);
   const isMockEmail = !process.env.EMAIL_USER || !process.env.EMAIL_PASS;
+  let emailDispatched = false;
 
   if (!isMockEmail) {
     try {
       await sendPasswordResetEmail(email, plainOtp);
+      emailDispatched = true;
     } catch (err) {
-      console.error('[Email Error] Failed to send password reset email:', err.message);
-      return res.status(502).json({
-        success: false,
-        message: 'Failed to deliver password reset email. Please verify SMTP settings and try again.',
-      });
+      console.error('[Email Error] Failed to send password reset email (Render Free Tier blocks outbound SMTP):', err.message);
     }
   }
 
   res.status(200).json({
     success: true,
-    message: "If this email is registered, we've sent a password reset OTP to it.",
+    message: emailDispatched
+      ? "If this email is registered, we've sent a password reset OTP to it."
+      : "Password reset OTP generated (Render Free Tier notice: use the on-screen code below).",
+    ...(!emailDispatched && { devOtp: plainOtp }),
   });
 });
 
