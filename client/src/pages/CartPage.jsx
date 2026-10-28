@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 const CartPage = () => {
   const {
@@ -16,6 +17,7 @@ const CartPage = () => {
     clearCart,
     loading,
   } = useCart();
+  const { isAuthenticated } = useAuth();
 
   const navigate = useNavigate();
 
@@ -29,7 +31,7 @@ const CartPage = () => {
     );
   }
 
-  if (items.length === 0) {
+  if (!isAuthenticated || items.length === 0) {
     return (
       <div className="container py-5 text-center">
         <div className="py-5 bg-white rounded-4 shadow-sm border p-4 max-w-md mx-auto" style={{ maxWidth: '480px' }}>
@@ -38,11 +40,20 @@ const CartPage = () => {
           </div>
           <h4 className="fw-bold mb-2">Your Shopping Bag is Empty</h4>
           <p className="text-muted small mb-4">
-            Looks like you haven't added anything to your cart yet. Explore our latest electronics, fashion, and kitchen collections!
+            {!isAuthenticated
+              ? 'Please log in to view your shopping bag, saved items, and proceed to checkout.'
+              : "Looks like you haven't added anything to your cart yet. Explore our latest electronics, fashion, and kitchen collections!"}
           </p>
-          <Link to="/products" className="btn btn-primary px-4">
-            Start Shopping Now <i className="bi bi-arrow-right ms-1"></i>
-          </Link>
+          <div className="d-flex gap-2 justify-content-center">
+            {!isAuthenticated && (
+              <Link to="/login" className="btn btn-primary px-4">
+                Log In <i className="bi bi-box-arrow-in-right ms-1"></i>
+              </Link>
+            )}
+            <Link to="/products" className={`btn ${!isAuthenticated ? 'btn-outline-secondary' : 'btn-primary'} px-4`}>
+              Browse Catalog <i className="bi bi-arrow-right ms-1"></i>
+            </Link>
+          </div>
         </div>
       </div>
     );

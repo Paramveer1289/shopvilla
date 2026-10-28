@@ -16,6 +16,11 @@ const ProductCard = ({ product }) => {
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
+    if (!isAuthenticated) {
+      showToast('Please log in to add items to your shopping bag.', 'warning');
+      navigate('/login');
+      return;
+    }
     try {
       setAdding(true);
       await addToCart(product._id, 1, product);

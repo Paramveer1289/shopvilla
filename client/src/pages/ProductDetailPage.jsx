@@ -45,6 +45,11 @@ const ProductDetailPage = () => {
   }, [id]);
 
   const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      showToast('Please log in to add items to your shopping bag.', 'warning');
+      navigate('/login');
+      return;
+    }
     try {
       setAddingToCart(true);
       await addToCart(product._id, quantity, product);

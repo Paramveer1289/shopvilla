@@ -1,4 +1,4 @@
-// Shopping Cart Context & Provider (DB Persistent & Guest LocalStorage Support)
+// Shopping Cart Context & Provider (User-Bound DB Persistent Cart)
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../api/axios';
 import { useAuth } from './AuthContext';
@@ -10,65 +10,21 @@ export const CartProvider = ({ children }) => {
   const { isAuthenticated } = useAuth();
   const { showToast } = useToast();
   const [cart, setCart] = useState(null);
-  const [guestItems, setGuestItems] = useState([]);
   const [cartChanges, setCartChanges] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Load guest cart from localStorage on component mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('shopvilla_guest_cart');
-      if (stored) {
-        setGuestItems(JSON.parse(stored));
-      }
-    } catch (err) {
-      console.warn('[Cart Storage Error]:', err);
-    }
-  }, []);
-
-  // Fetch or merge cart whenever authentication status updates
+  // Fetch active DB cart on login; wipe immediately on logout
   useEffect(() => {
     if (isAuthenticated) {
-      handleUserCartSync();
+      fetchCart();
     } else {
       setCart(null);
+      setCartChanges([]);
+      try {
+        localStorage.removeItem('shopvilla_guest_cart');
+      } catch (e) {}
     }
   }, [isAuthenticated]);
-
-  // Synchronize and merge guest cart into DB upon authentication
-  const handleUserCartSync = async () => {
-    try {
-      setLoading(true);
-      let localItems = [];
-      try {
-        const stored = localStorage.getItem('shopvilla_guest_cart');
-        if (stored) localItems = JSON.parse(stored);
-      } catch (e) {}
-
-      // If guest had items in localStorage, merge them into the user's DB cart
-      if (localItems.length > 0) {
-        const res = await api.post('/cart/merge', {
-          guestItems: localItems.map((item) => ({
-            productId: item.product?._id || item.productId,
-            quantity: item.quantity,
-          })),
-        });
-        setCart(res.data.cart);
-        localStorage.removeItem('shopvilla_guest_cart');
-        setGuestItems([]);
-        if (res.data.changes && res.data.changes.length > 0) {
-          setCartChanges(res.data.changes);
-        }
-      } else {
-        await fetchCart();
-      }
-    } catch (err) {
-      console.warn('[Cart Sync Warning]:', err.message);
-      await fetchCart();
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Fetch active DB cart and capture any inventory/price change notices
   const fetchCart = useCallback(async () => {
@@ -90,117 +46,58 @@ export const CartProvider = ({ children }) => {
     }
   }, [isAuthenticated, showToast]);
 
-  // Save guest items array to localStorage helper
-  const saveGuestItems = (newItems) => {
-    setGuestItems(newItems);
-    try {
-      localStorage.setItem('shopvilla_guest_cart', JSON.stringify(newItems));
-    } catch (e) {
-      console.warn('[LocalStorage Save Error]:', e);
-    }
-  };
-
-  // Add item to cart (supports both authenticated DB and guest localStorage)
+  // Add item to cart (requires authentication)
   const addToCart = async (productId, quantity = 1, productSnapshot = null) => {
-    if (isAuthenticated) {
-      try {
-        const res = await api.post('/cart/add', { productId, quantity });
-        setCart(res.data.cart);
-        return res.data;
-      } catch (err) {
-        throw err;
-      }
-    } else {
-      // Guest mode: update localStorage
-      const existingIndex = guestItems.findIndex(
-        (item) => (item.product?._id || item.productId) === productId
-      );
-
-      let updated;
-      if (existingIndex > -1) {
-        const currentQty = guestItems[existingIndex].quantity;
-        const maxStock = productSnapshot?.stock || 99;
-        const newQty = Math.min(currentQty + quantity, maxStock);
-        updated = [...guestItems];
-        updated[existingIndex] = {
-          ...updated[existingIndex],
-          quantity: newQty,
-        };
-      } else {
-        updated = [
-          ...guestItems,
-          {
-            productId,
-            product: productSnapshot || { _id: productId, name: 'Product', price: 0 },
-            quantity,
-          },
-        ];
-      }
-      saveGuestItems(updated);
-      return { success: true };
+    if (!isAuthenticated) {
+      throw new Error('Please log in to add items to your shopping bag.');
+    }
+    try {
+      const res = await api.post('/cart/add', { productId, quantity });
+      setCart(res.data.cart);
+      return res.data;
+    } catch (err) {
+      throw err;
     }
   };
 
   // Update quantity of an item
   const updateQuantity = async (productId, quantity) => {
-    if (isAuthenticated) {
-      try {
-        const res = await api.put('/cart/update', { productId, quantity });
-        setCart(res.data.cart);
-        return res.data;
-      } catch (err) {
-        throw err;
-      }
-    } else {
-      // Guest mode
-      if (quantity <= 0) {
-        removeFromCart(productId);
-      } else {
-        const updated = guestItems.map((item) =>
-          (item.product?._id || item.productId) === productId
-            ? { ...item, quantity }
-            : item
-        );
-        saveGuestItems(updated);
-      }
+    if (!isAuthenticated) return;
+    try {
+      const res = await api.put('/cart/update', { productId, quantity });
+      setCart(res.data.cart);
+      return res.data;
+    } catch (err) {
+      throw err;
     }
   };
 
   // Remove single item
   const removeFromCart = async (productId) => {
-    if (isAuthenticated) {
-      try {
-        const res = await api.delete(`/cart/item/${productId}`);
-        setCart(res.data.cart);
-        return res.data;
-      } catch (err) {
-        throw err;
-      }
-    } else {
-      const updated = guestItems.filter(
-        (item) => (item.product?._id || item.productId) !== productId
-      );
-      saveGuestItems(updated);
+    if (!isAuthenticated) return;
+    try {
+      const res = await api.delete(`/cart/item/${productId}`);
+      setCart(res.data.cart);
+      return res.data;
+    } catch (err) {
+      throw err;
     }
   };
 
   // Clear all items
   const clearCart = async () => {
-    if (isAuthenticated) {
-      try {
-        const res = await api.delete('/cart/clear');
-        setCart(res.data.cart);
-        return res.data;
-      } catch (err) {
-        throw err;
-      }
-    } else {
-      saveGuestItems([]);
+    if (!isAuthenticated) return;
+    try {
+      const res = await api.delete('/cart/clear');
+      setCart(res.data.cart);
+      return res.data;
+    } catch (err) {
+      throw err;
     }
   };
 
-  // Unified items list (authenticated DB items or guest items)
-  const items = isAuthenticated ? cart?.items || [] : guestItems;
+  // Cart is strictly empty for unauthenticated visitors
+  const items = isAuthenticated ? cart?.items || [] : [];
   const itemCount = items.reduce((acc, item) => acc + (item.quantity || 0), 0);
   const subtotal = items.reduce(
     (acc, item) => acc + (item.product?.price || 0) * item.quantity,
