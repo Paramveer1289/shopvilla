@@ -77,7 +77,7 @@ const HomePage = () => {
     const productId = matched ? matched._id : slide.fallbackId;
     return {
       ...slide,
-      link: `/products/${productId}`,
+      link: `/product/${productId}`,
     };
   });
 
