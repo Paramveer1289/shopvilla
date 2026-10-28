@@ -11,57 +11,75 @@ const HomePage = () => {
   const [isPaused, setIsPaused] = useState(false);
   const slideTimerRef = useRef(null);
 
-  // Curated hero slideshow showcasing trending products and discounts
-  const slides = [
+  const [allProducts, setAllProducts] = useState([]);
+
+  // Curated hero slideshow showcasing trending products and special offers
+  const rawSlides = [
     {
-      badge: '🔥 FLASH SALE • 33% OFF',
+      keyword: 'Sony WH-1000XM5',
+      fallbackId: '6ae20f37085517ebbc2dcefa',
+      badge: '🔥 SPECIAL OFFER • 33% OFF',
       title: 'Sony WH-1000XM5 Wireless Headphones',
       description: 'Industry-leading noise cancellation with two processors and 8 microphones. Experience unmatched audio clarity at an exclusive reduced price.',
       price: '₹19,990',
       originalPrice: '₹29,990',
       discount: '33% OFF',
-      tag: 'Trending in Tech',
+      tag: 'Special Offer',
       image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80',
-      link: '/products?category=Electronics',
       ctaText: 'Claim Discount',
     },
     {
-      badge: '⚡ SPECIAL PRICE • 38% OFF',
+      keyword: 'AeroPress Original',
+      fallbackId: '6ae20f37085517ebbc2dcf01',
+      badge: '⚡ SPECIAL OFFER • 38% OFF',
       title: 'AeroPress Coffee Maker & Chamber',
       description: 'Patented 3-in-1 brew technology for exceptionally smooth, rich, grit-free coffee in 1 minute. Price reduced for coffee lovers.',
       price: '₹2,499',
       originalPrice: '₹3,999',
       discount: '38% OFF',
-      tag: 'Kitchen Essential',
+      tag: 'Special Offer',
       image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80',
-      link: '/products?category=Home%20%26%20Kitchen',
-      ctaText: 'Shop Kitchenware',
+      ctaText: 'Claim Discount',
     },
     {
-      badge: '✨ SEASON 2026 DEAL • 25% OFF',
+      keyword: 'Nike Air Max 270',
+      fallbackId: '6ae20f37085517ebbc2dceff',
+      badge: '✨ SPECIAL OFFER • 25% OFF',
       title: 'Nike Air Max 270 React Running Shoes',
       description: 'Lightweight multi-layered breathable mesh upper with vibrant aesthetics and plush bounce-back stride. Now at a discounted price.',
       price: '₹8,995',
       originalPrice: '₹11,995',
       discount: '25% OFF',
-      tag: 'Best Seller',
+      tag: 'Special Offer',
       image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80',
-      link: '/products?category=Fashion',
-      ctaText: 'Explore Fashion',
+      ctaText: 'Claim Discount',
     },
     {
-      badge: '🏷️ DISCOUNT SPECIAL • 38% OFF',
+      keyword: 'Minimalist Titanium',
+      fallbackId: '6ae20f37085517ebbc2dcf00',
+      badge: '🏷️ SPECIAL OFFER • 38% OFF',
       title: 'Minimalist Titanium Chronograph Watch',
       description: '40mm matte titanium case with scratch-resistant sapphire crystal and Japanese quartz movement. Heavily discounted with doorstep delivery.',
       price: '₹8,999',
       originalPrice: '₹14,500',
       discount: '38% OFF',
-      tag: 'Hot Deal',
+      tag: 'Special Offer',
       image: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=800&q=80',
-      link: '/products?category=Fashion',
-      ctaText: 'View Deal',
+      ctaText: 'Claim Discount',
     },
   ];
+
+  // Resolve link to product description page using live DB match or fallback ID
+  const slides = rawSlides.map((slide) => {
+    const matched = allProducts.find((p) =>
+      p.name?.toLowerCase().includes(slide.keyword.toLowerCase())
+    );
+    const productId = matched ? matched._id : slide.fallbackId;
+    return {
+      ...slide,
+      link: `/products/${productId}`,
+    };
+  });
 
   // Auto-advance slideshow every 5 seconds unless hovered
   useEffect(() => {
@@ -84,17 +102,21 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    const fetchFeatured = async () => {
+    const fetchCatalogData = async () => {
       try {
-        const res = await api.get('/products/featured');
-        setFeaturedProducts(res.data.products);
+        const [featRes, allRes] = await Promise.all([
+          api.get('/products/featured'),
+          api.get('/products?limit=50'),
+        ]);
+        setFeaturedProducts(featRes.data.products || []);
+        setAllProducts(allRes.data.products || []);
       } catch (err) {
-        console.error('Failed to load featured products:', err.message);
+        console.error('Failed to load products:', err.message);
       } finally {
         setLoading(false);
       }
     };
-    fetchFeatured();
+    fetchCatalogData();
   }, []);
 
   const categories = [
@@ -139,16 +161,20 @@ const HomePage = () => {
           <div className="row align-items-center g-4 position-relative" style={{ zIndex: 2 }}>
             <div className="col-lg-7 text-white">
               <div className="d-flex align-items-center gap-2 mb-3">
-                <span className="badge bg-white text-primary fw-bold px-3 py-2 rounded-pill shadow-sm">
-                  {active.badge}
-                </span>
+                <Link to={active.link} className="text-decoration-none">
+                  <span className="badge bg-white text-primary fw-bold px-3 py-2 rounded-pill shadow-sm">
+                    {active.badge}
+                  </span>
+                </Link>
                 <span className="badge bg-dark bg-opacity-25 text-white px-2 py-1 rounded-pill small">
                   {active.tag}
                 </span>
               </div>
-              <h1 className="display-5 fw-extrabold mb-3 text-white">
-                {active.title}
-              </h1>
+              <Link to={active.link} className="text-decoration-none text-white">
+                <h1 className="display-5 fw-extrabold mb-3 text-white">
+                  {active.title}
+                </h1>
+              </Link>
               <p className="lead mb-4 text-white opacity-90" style={{ maxWidth: '620px' }}>
                 {active.description}
               </p>
@@ -167,20 +193,22 @@ const HomePage = () => {
               </div>
             </div>
             <div className="col-lg-5 text-center d-none d-lg-block">
-              <div className="position-relative d-inline-block">
-                <img
-                  src={active.image}
-                  alt={active.title}
-                  className="img-fluid rounded-4 shadow-lg border border-light border-opacity-25"
-                  style={{ maxHeight: '330px', width: '420px', objectFit: 'cover', transition: 'all 0.5s ease-in-out' }}
-                />
-                <div
-                  className="position-absolute bottom-0 start-50 translate-middle-x mb-3 px-3 py-1 rounded-pill bg-dark bg-opacity-75 text-white small fw-semibold"
-                >
-                  <i className="bi bi-lightning-charge-fill text-warning me-1"></i>
-                  Selling Fast • Free Delivery
+              <Link to={active.link} className="text-decoration-none">
+                <div className="position-relative d-inline-block">
+                  <img
+                    src={active.image}
+                    alt={active.title}
+                    className="img-fluid rounded-4 shadow-lg border border-light border-opacity-25"
+                    style={{ maxHeight: '330px', width: '420px', objectFit: 'cover', transition: 'all 0.5s ease-in-out' }}
+                  />
+                  <div
+                    className="position-absolute bottom-0 start-50 translate-middle-x mb-3 px-3 py-1 rounded-pill bg-dark bg-opacity-75 text-white small fw-semibold"
+                  >
+                    <i className="bi bi-lightning-charge-fill text-warning me-1"></i>
+                    Special Offer • Click to View
+                  </div>
                 </div>
-              </div>
+              </Link>
             </div>
           </div>
 
