@@ -75,7 +75,7 @@ const register = catchAsync(async (req, res, next) => {
       console.error('[Email Error] Failed to send verification email:', err.message);
       return res.status(502).json({
         success: false,
-        message: 'Account registered, but failed to deliver verification email. Please click Resend OTP to try again.',
+        message: `Account registered, but failed to deliver verification email (${err.message}). Please check your SMTP credentials.`,
         email: user.email,
       });
     }
@@ -123,9 +123,19 @@ const resendVerificationOTP = catchAsync(async (req, res, next) => {
   }
 
   const plainOtp = await generateAndSaveOtp(user.email, 'VERIFICATION', user._id);
-  await sendVerificationOtpEmail(user.email, plainOtp, user.name);
-
   const isMockEmail = !process.env.EMAIL_USER || !process.env.EMAIL_PASS;
+
+  if (!isMockEmail) {
+    try {
+      await sendVerificationOtpEmail(user.email, plainOtp, user.name);
+    } catch (err) {
+      console.error('[Email Error] Failed to resend verification email:', err.message);
+      return res.status(502).json({
+        success: false,
+        message: `Failed to deliver verification email (${err.message}). Please check SMTP credentials.`,
+      });
+    }
+  }
 
   res.status(200).json({
     success: true,

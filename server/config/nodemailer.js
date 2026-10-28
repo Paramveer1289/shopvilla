@@ -4,21 +4,32 @@ const nodemailer = require('nodemailer');
 const hasCredentials =
   Boolean(process.env.EMAIL_USER) && Boolean(process.env.EMAIL_PASS);
 
+const cleanUser = (process.env.EMAIL_USER || '').trim().replace(/['"]/g, '');
+const cleanPass = (pass) => {
+  if (!pass) return '';
+  const trimmed = pass.trim().replace(/['"]/g, '');
+  const words = trimmed.split(/\s+/);
+  if (words.length > 1 && words[0].length === 16) {
+    return words[0];
+  }
+  return trimmed.replace(/\s+/g, '');
+};
+
 let transporter;
 
 if (hasCredentials) {
   const isGmail =
     !process.env.EMAIL_HOST ||
     process.env.EMAIL_HOST.includes('gmail') ||
-    (process.env.EMAIL_USER && process.env.EMAIL_USER.endsWith('@gmail.com'));
+    cleanUser.endsWith('@gmail.com');
 
   if (isGmail) {
     // Gmail service configuration with SSL port 465 for reliable cloud delivery (Render/Vercel)
     transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: (process.env.EMAIL_PASS || '').replace(/\s+/g, ''),
+        user: cleanUser,
+        pass: cleanPass(process.env.EMAIL_PASS),
       },
       connectionTimeout: 10000,
       greetingTimeout: 10000,
@@ -29,8 +40,8 @@ if (hasCredentials) {
       port: Number(process.env.EMAIL_PORT) || 587,
       secure: Number(process.env.EMAIL_PORT) === 465,
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: (process.env.EMAIL_PASS || '').replace(/\s+/g, ''),
+        user: cleanUser,
+        pass: cleanPass(process.env.EMAIL_PASS),
       },
       connectionTimeout: 10000,
       greetingTimeout: 10000,

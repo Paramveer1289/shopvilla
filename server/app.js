@@ -98,6 +98,46 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Email SMTP Diagnostic Endpoint
+const transporter = require('./config/nodemailer');
+app.get('/api/health/email', async (req, res) => {
+  const hasCreds = Boolean(process.env.EMAIL_USER) && Boolean(process.env.EMAIL_PASS);
+  const emailUser = process.env.EMAIL_USER ? `${process.env.EMAIL_USER.slice(0, 3)}***` : 'NOT_SET';
+  const passLength = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.length : 0;
+  if (!hasCreds) {
+    return res.status(200).json({
+      status: 'warning',
+      mode: 'mock',
+      message: 'EMAIL_USER or EMAIL_PASS is missing in server environment',
+      user: emailUser,
+      passLength,
+    });
+  }
+
+  try {
+    if (transporter.verify) {
+      await transporter.verify();
+    }
+    res.status(200).json({
+      status: 'success',
+      mode: 'live_smtp',
+      message: 'SMTP transporter verified and ready to send emails',
+      user: emailUser,
+      passLength,
+    });
+  } catch (err) {
+    res.status(502).json({
+      status: 'error',
+      mode: 'live_smtp',
+      message: err.message,
+      code: err.code,
+      response: err.response,
+      user: emailUser,
+      passLength,
+    });
+  }
+});
+
 // 8. Mount Feature Routers
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/products', productRoutes);
