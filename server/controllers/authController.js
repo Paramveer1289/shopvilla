@@ -203,7 +203,19 @@ const forgotPassword = catchAsync(async (req, res, next) => {
   }
 
   const plainOtp = await generateAndSaveOtp(email, 'RESET_PASSWORD', user._id);
-  await sendPasswordResetEmail(email, plainOtp);
+  const isMockEmail = !process.env.EMAIL_USER || !process.env.EMAIL_PASS;
+
+  if (!isMockEmail) {
+    try {
+      await sendPasswordResetEmail(email, plainOtp);
+    } catch (err) {
+      console.error('[Email Error] Failed to send password reset email:', err.message);
+      return res.status(502).json({
+        success: false,
+        message: 'Failed to deliver password reset email. Please verify SMTP settings and try again.',
+      });
+    }
+  }
 
   res.status(200).json({
     success: true,

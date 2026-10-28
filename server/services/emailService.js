@@ -2,8 +2,12 @@
 const transporter = require('../config/nodemailer');
 
 const sendEmail = async ({ to, subject, html, text }) => {
+  const defaultFrom = process.env.EMAIL_USER
+    ? `ShopVilla Support <${process.env.EMAIL_USER}>`
+    : 'ShopVilla Support <no-reply@shopvilla.com>';
+
   const mailOptions = {
-    from: process.env.EMAIL_FROM || 'ShopVilla Support <no-reply@shopvilla.com>',
+    from: process.env.EMAIL_FROM || defaultFrom,
     to,
     subject,
     text: text || html.replace(/<[^>]*>?/gm, ''),
