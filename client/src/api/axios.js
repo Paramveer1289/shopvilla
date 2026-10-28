@@ -1,14 +1,15 @@
 // Axios API Client Configuration
 import axios from 'axios';
 
-const rawBaseURL = import.meta.env.VITE_API_URL || '/api/v1';
-const baseURL = rawBaseURL.endsWith('/') ? rawBaseURL.slice(0, -1) : rawBaseURL;
+let rawBaseURL = (import.meta.env.VITE_API_URL || '/api/v1').trim();
+rawBaseURL = rawBaseURL.replace(/\/+$/, ''); // Strip trailing slashes
 
-if (import.meta.env.PROD && !import.meta.env.VITE_API_URL) {
-  console.warn(
-    '[ShopVilla Warning] VITE_API_URL environment variable is missing on Vercel! Falling back to /api/v1.'
-  );
+// Automatically append /api/v1 if root domain was supplied without api prefix
+if (!rawBaseURL.endsWith('/api/v1')) {
+  rawBaseURL += '/api/v1';
 }
+
+const baseURL = rawBaseURL;
 
 const api = axios.create({
   baseURL,
