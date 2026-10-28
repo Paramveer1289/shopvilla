@@ -146,7 +146,11 @@ const createOrder = catchAsync(async (req, res, next) => {
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
       },
-      razorpayKey: process.env.RAZORPAY_KEY_ID,
+      razorpayKey:
+        process.env.RAZORPAY_KEY_ID?.includes('shopvilla') ||
+        razorpayOrder.id?.startsWith('order_mock_')
+          ? 'rzp_test_mock'
+          : (process.env.RAZORPAY_KEY_ID || 'rzp_test_mock'),
     });
   }
 

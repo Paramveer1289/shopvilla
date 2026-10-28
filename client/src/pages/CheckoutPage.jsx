@@ -16,6 +16,8 @@ const CheckoutPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [pendingOrderId, setPendingOrderId] = useState(null);
   const [pollingPayment, setPollingPayment] = useState(false);
+  const [showMockModal, setShowMockModal] = useState(false);
+  const [mockOrderContext, setMockOrderContext] = useState(null);
 
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [newAddr, setNewAddr] = useState({
@@ -136,78 +138,97 @@ const CheckoutPage = () => {
       }
 
       if (paymentMethod === 'ONLINE') {
-        if (window.Razorpay && razorpayOrder) {
-          const options = {
-            key: razorpayKey || 'rzp_test_placeholder',
-            amount: razorpayOrder.amount,
-            currency: razorpayOrder.currency || 'INR',
-            name: 'ShopVilla Inc.',
-            description: `Order #${order._id.substring(order._id.length - 8)}`,
-            order_id: razorpayOrder.id,
-            prefill: {
-              name: user?.name,
-              email: user?.email,
-              contact: user?.phone || selectedAddress.phone,
-            },
-            theme: {
-              color: '#ea580c',
-            },
-            handler: async function (response) {
-              try {
-                const verifyRes = await api.post('/orders/verify-payment', {
-                  orderId: order._id,
-                  razorpayOrderId: response.razorpay_order_id,
-                  razorpayPaymentId: response.razorpay_payment_id,
-                  razorpaySignature: response.razorpay_signature,
-                });
+        const isMock =
+          razorpayOrder?.id?.startsWith('order_mock_') ||
+          !razorpayKey ||
+          razorpayKey === 'rzp_test_mock' ||
+          razorpayKey.includes('placeholder') ||
+          razorpayKey.includes('shopvilla');
 
-                navigate(`/order-success/${order._id}`, {
-                  state: { order: verifyRes.data.order, method: 'ONLINE' },
-                });
-              } catch (verifyErr) {
-                setErrorMessage(`Verification Failed: ${verifyErr.message}`);
-                setProcessing(false);
-              }
-            },
-            modal: {
-              ondismiss: function () {
-                // User closed popup — poll silently in background (handles browser-close scenario)
-                setPendingOrderId(order._id);
-                pollPaymentStatus(order._id);
-              },
-            },
-          };
-
-          const rzp = new window.Razorpay(options);
-          rzp.on('payment.failed', function (response) {
-            setErrorMessage(`Payment Failed: ${response.error.description}`);
-            setProcessing(false);
-          });
-          rzp.open();
-        } else {
-          // Mock simulation fallback
-          const simulateMock = window.confirm(
-            'Razorpay SDK script is running in offline test simulation mode. Confirm simulated payment approval?'
-          );
-          if (simulateMock) {
-            const verifyRes = await api.post('/orders/verify-payment', {
-              orderId: order._id,
-              razorpayOrderId: razorpayOrder.id,
-              razorpayPaymentId: `pay_mock_${Date.now()}`,
-              razorpaySignature: 'mock_valid_signature',
-            });
-            navigate(`/order-success/${order._id}`, {
-              state: { order: verifyRes.data.order, method: 'ONLINE' },
-            });
-          } else {
-            setProcessing(false);
-          }
+        if (isMock || !window.Razorpay) {
+          setMockOrderContext({ order, razorpayOrder });
+          setShowMockModal(true);
+          setProcessing(false);
+          return;
         }
+
+        const options = {
+          key: razorpayKey,
+          amount: razorpayOrder.amount,
+          currency: razorpayOrder.currency || 'INR',
+          name: 'ShopVilla Inc.',
+          description: `Order #${order._id.substring(order._id.length - 8)}`,
+          order_id: razorpayOrder.id,
+          prefill: {
+            name: user?.name,
+            email: user?.email,
+            contact: user?.phone || selectedAddress.phone,
+          },
+          theme: {
+            color: '#ea580c',
+          },
+          handler: async function (response) {
+            try {
+              const verifyRes = await api.post('/orders/verify-payment', {
+                orderId: order._id,
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+              });
+
+              navigate(`/order-success/${order._id}`, {
+                state: { order: verifyRes.data.order, method: 'ONLINE' },
+              });
+            } catch (verifyErr) {
+              setErrorMessage(`Verification Failed: ${verifyErr.message}`);
+              setProcessing(false);
+            }
+          },
+          modal: {
+            ondismiss: function () {
+              setPendingOrderId(order._id);
+              pollPaymentStatus(order._id);
+            },
+          },
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function (response) {
+          setErrorMessage(`Payment Failed: ${response.error?.description || 'Transaction declined'}`);
+          setProcessing(false);
+        });
+        rzp.open();
       }
     } catch (err) {
       setErrorMessage(err.message);
       setProcessing(false);
     }
+  };
+
+  const handleApproveMockPayment = async () => {
+    if (!mockOrderContext) return;
+    try {
+      setProcessing(true);
+      const verifyRes = await api.post('/orders/verify-payment', {
+        orderId: mockOrderContext.order._id,
+        razorpayOrderId: mockOrderContext.razorpayOrder.id,
+        razorpayPaymentId: `pay_test_${Date.now()}`,
+        razorpaySignature: 'mock_valid_signature',
+      });
+      setShowMockModal(false);
+      navigate(`/order-success/${mockOrderContext.order._id}`, {
+        state: { order: verifyRes.data.order, method: 'ONLINE' },
+      });
+    } catch (err) {
+      setErrorMessage(`Verification Failed: ${err.message}`);
+      setProcessing(false);
+    }
+  };
+
+  const handleDeclineMockPayment = () => {
+    setShowMockModal(false);
+    setErrorMessage('Simulated transaction was declined. Your items are reserved in your order history.');
+    setProcessing(false);
   };
 
   if (items.length === 0) {
@@ -558,6 +579,77 @@ const CheckoutPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Interactive Sandbox Test Payment Modal */}
+      {showMockModal && mockOrderContext && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center p-3"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.65)', zIndex: 1055 }}
+        >
+          <div
+            className="bg-white rounded-4 shadow-lg p-4 w-100 text-center border"
+            style={{ maxWidth: '440px' }}
+          >
+            <div className="rounded-circle bg-warning-subtle text-warning d-inline-flex p-3 mb-2">
+              <i className="bi bi-credit-card-2-front-fill fs-2"></i>
+            </div>
+            <h4 className="fw-bold mb-1">Razorpay Sandbox Simulator</h4>
+            <span className="badge bg-primary-subtle text-primary mb-3">
+              Test Mode • No Real Money Deducted
+            </span>
+            <p className="text-muted small mb-3">
+              Razorpay API keys have not been configured on Render yet. You can use this sandbox dialog to test order fulfillment, stock deduction, and payment verification.
+            </p>
+            <div className="bg-light rounded-3 p-3 mb-3 text-start small border">
+              <div className="d-flex justify-content-between mb-1">
+                <span className="text-muted">Order ID:</span>
+                <span className="fw-semibold">#{mockOrderContext.order._id.slice(-8)}</span>
+              </div>
+              <div className="d-flex justify-content-between mb-1">
+                <span className="text-muted">Customer:</span>
+                <span className="fw-semibold">{user?.name || 'Customer'}</span>
+              </div>
+              <div className="d-flex justify-content-between border-top pt-2 mt-2">
+                <strong className="text-dark">Payable Amount:</strong>
+                <strong className="text-success fs-6">₹{mockOrderContext.order.totalAmount.toLocaleString('en-IN')}</strong>
+              </div>
+            </div>
+
+            <div className="d-grid gap-2">
+              <button
+                type="button"
+                className="btn btn-success py-2 fw-semibold d-flex align-items-center justify-content-center gap-2"
+                onClick={handleApproveMockPayment}
+                disabled={processing}
+              >
+                {processing ? (
+                  <span className="spinner-border spinner-border-sm" role="status"></span>
+                ) : (
+                  <>
+                    <i className="bi bi-check-circle-fill"></i> Approve Test Payment (Success)
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline-danger py-2 fw-semibold"
+                onClick={handleDeclineMockPayment}
+                disabled={processing}
+              >
+                <i className="bi bi-x-circle me-1"></i> Simulate Payment Failure
+              </button>
+              <button
+                type="button"
+                className="btn btn-link text-muted small mt-1"
+                onClick={() => setShowMockModal(false)}
+                disabled={processing}
+              >
+                Cancel and Return to Checkout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
