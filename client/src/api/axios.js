@@ -1,8 +1,17 @@
 // Axios API Client Configuration
 import axios from 'axios';
 
+const rawBaseURL = import.meta.env.VITE_API_URL || '/api/v1';
+const baseURL = rawBaseURL.endsWith('/') ? rawBaseURL.slice(0, -1) : rawBaseURL;
+
+if (import.meta.env.PROD && !import.meta.env.VITE_API_URL) {
+  console.warn(
+    '[ShopVilla Warning] VITE_API_URL environment variable is missing on Vercel! Falling back to /api/v1.'
+  );
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api/v1',
+  baseURL,
   withCredentials: true, // Enables cookie exchange for sessions
   headers: {
     'Content-Type': 'application/json',
